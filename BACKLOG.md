@@ -1,3 +1,25 @@
+# Build status
+
+## Slice 0, stabilise, DONE
+- Gates added: lint, build, test, gate
+- Vitest installed
+- Smoke test added
+- CLAUDE.md added
+- Working tree clean
+
+## Next slice, Slice 1, postcode gating, READY
+Goal
+- Settings can register but are not live until admin enables their postcode
+
+Acceptance criteria
+- Setting register creates setting with status = pending and postcode
+- API and UI enforce cannot create live bookings when pending
+- Admin can enable a postcode, which flips all settings in that postcode to live, or allows per setting enable
+- Feature flag: POSTCODE_GATING enabled by default
+
+Tests
+- Unit test for gating rule
+- API route test for setting register validation
 # REC-APP Development Backlog
 **Generated:** 2026-02-17  
 **Methodology:** Small slices with clear acceptance criteria
