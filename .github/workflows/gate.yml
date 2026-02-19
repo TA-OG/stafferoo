@@ -25,5 +25,5 @@ jobs:
       - name: Gate
         run: npm run gate
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ https://zkqysmbyfrijmfrrjxps.supabase.co }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ sb_publishable_NAR6f9h2KUSNlGormWAFXA_Z0M4oQEq }}
+          NEXT_PUBLIC_SUPABASE_URL: {{ }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{  }}
