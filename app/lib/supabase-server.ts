@@ -1,17 +1,59 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { cookies } from "next/headers";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
-export async function createClient() {
+function mustEnv(name: string): string {
+  const v = process.env[name];
+  if (!v) throw new Error(`Missing env var ${name}`);
+  return v;
+}
+
+export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    mustEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    mustEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        getAll() {
+          return cookieStore.getAll();
         },
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: CookieOptions }>) {
+          for (const c of cookiesToSet) {
+            cookieStore.set(c.name, c.value, c.options);
+          }
+        },
+      },
+    }
+  );
+}
+
+export async function getUserOrThrow() {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) {
+    return { supabase, user: null };
+  }
+  return { supabase, user: data.user };
+}
+
+// Backwards compatibility exports
+export const createClient = createSupabaseServerClient;
+
+export function createAdminClient() {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) {
+    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+  }
+
+  return createSupabaseClient(
+    mustEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    serviceRoleKey,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
       },
     }
   );

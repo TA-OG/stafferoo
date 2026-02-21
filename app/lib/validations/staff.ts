@@ -4,7 +4,11 @@ import { z } from 'zod';
 export const staffProfileBasicsSchema = z.object({
   full_name: z.string().min(2, 'Full name must be at least 2 characters').max(100),
   national_insurance_number: z.string()
-    .regex(/^[A-Z]{2}[0-9]{6}[A-Z]$/, 'Invalid NI number format (e.g., AB123456C)')
+    .transform((val) => val.replace(/\s+/g, '').toUpperCase())
+    .refine(
+      (val) => val === '' || /^[A-Z]{2}\d{6}[A-D]$/i.test(val),
+      'Invalid NI number (e.g. AB123456C — 2 letters, 6 digits, letter A–D)'
+    )
     .optional()
     .or(z.literal('')),
   date_of_birth: z.string().refine((val) => {
@@ -25,6 +29,7 @@ export const staffProfileBasicsSchema = z.object({
   transport_mode: z.enum(['car', 'public_transport', 'bicycle', 'walking']),
   years_experience: z.number().int().min(0).max(50),
   qualification_level: z.enum(['level_2', 'level_3', 'level_4_plus', 'unqualified']),
+  qualification_name: z.string().optional(),
   criminal_conviction_declared: z.boolean(),
   criminal_conviction_details: z.string().optional(),
 });
@@ -59,14 +64,14 @@ export const staffHealthSafetySchema = z.object({
   gp_name: z.string().min(2, 'GP name is required'),
   gp_address: z.string().min(10, 'GP address is required'),
   health_declaration: z.object({
-    conditions: z.array(z.string()),
+    has_disability: z.boolean(),
+    needs_adjustments: z.boolean(),
+    has_health_concerns: z.boolean(),
     notes: z.string().optional(),
   }),
   smoking_declaration: z.enum(['non_smoker', 'smoker', 'ex_smoker']),
-  drugs_alcohol_declaration: z.string().min(10, 'Declaration is required'),
-  disqualified_person_declaration: z.boolean().refine((val) => val === false, {
-    message: 'You must not be disqualified from working with children',
-  }),
+  drugs_alcohol_declaration: z.boolean(),
+  disqualified_person_declaration: z.boolean(),
 });
 
 export type StaffHealthSafetyInput = z.infer<typeof staffHealthSafetySchema>;
@@ -85,3 +90,44 @@ export const staffOnboardingCompleteSchema = staffProfileBasicsSchema
   .merge(staffSignatureSchema);
 
 export type StaffOnboardingCompleteInput = z.infer<typeof staffOnboardingCompleteSchema>;
+
+// Admin verification
+export const staffVerificationSchema = z.object({
+  staff_id: z.string().uuid(),
+  action: z.enum(['approve', 'reject']),
+  notes: z.string().optional(),
+});
+
+export type StaffVerificationInput = z.infer<typeof staffVerificationSchema>;
+
+// Dashboard: account settings (always editable post-verification)
+export const staffSettingsSchema = z.object({
+  travel_radius_miles: z.number().int().min(1).max(50),
+  transport_mode: z.enum(['car', 'public_transport', 'bicycle', 'walking']),
+  years_experience: z.number().int().min(0).max(50),
+  qualification_level: z.enum(['level_2', 'level_3', 'level_4_plus', 'unqualified']),
+  qualification_name: z.string().max(200).optional(),
+});
+
+export type StaffSettingsInput = z.infer<typeof staffSettingsSchema>;
+
+// Dashboard: notification preferences
+export const staffNotificationPrefsSchema = z.object({
+  email_on: z.boolean(),
+  sms_on: z.boolean(),
+  browser_on: z.boolean(),
+});
+
+export type StaffNotificationPrefsInput = z.infer<typeof staffNotificationPrefsSchema>;
+
+// Dashboard: unavailability block
+export const staffUnavailabilitySchema = z.object({
+  starts_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
+  ends_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
+  note: z.string().max(500).optional(),
+}).refine((v) => v.ends_on >= v.starts_on, {
+  message: 'End date must be on or after start date',
+  path: ['ends_on'],
+});
+
+export type StaffUnavailabilityInput = z.infer<typeof staffUnavailabilitySchema>;

@@ -1,26 +1,174 @@
 @import "tailwindcss";
 
+/* Stafferoo Brand Design Tokens */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand Colors */
+  --brand-mulberry: #bf5d9f;
+  --brand-shilo: #e7a4a4;
+  --brand-cold-purple: #b49cdc;
+  --brand-background: #f8f0f5;
+  
+  /* Semantic Colors */
+  --color-primary: var(--brand-mulberry);
+  --color-secondary: var(--brand-shilo);
+  --color-accent: var(--brand-cold-purple);
+  --color-background: var(--brand-background);
+  
+  /* Text Colors */
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #6b7280;
+  
+  /* Component Colors */
+  --color-card-bg: #ffffff;
+  --color-card-border: rgba(180, 156, 220, 0.2);
+  --color-input-text: #1f2937;
+  --color-input-placeholder: #6b7280;
+  --color-input-border: rgba(180, 156, 220, 0.3);
+  --color-input-focus: var(--brand-cold-purple);
+  
+  /* Legacy variables for compatibility */
+  --background: var(--brand-background);
+  --foreground: var(--color-text-primary);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--brand-background);
+  --color-foreground: var(--color-text-primary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-edensor);
+  
+  /* Extend Tailwind colors with brand palette */
+  --color-mulberry: var(--brand-mulberry);
+  --color-shilo: var(--brand-shilo);
+  --color-cold-purple: var(--brand-cold-purple);
+  --color-primary: var(--brand-mulberry);
+  --color-secondary: var(--brand-shilo);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Keep light theme for Stafferoo brand consistency */
+    /* Dark mode intentionally not implemented for brand identity */
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display font for headings */
+h1, h2, h3.display {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+/* Global input, textarea, and select styling */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+  color: var(--color-input-text);
+  background-color: var(--color-card-bg);
+  border-color: var(--color-input-border);
+  
+  &::placeholder {
+    color: var(--color-input-placeholder);
+    opacity: 1;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: var(--color-input-focus);
+    box-shadow: 0 0 0 3px rgba(180, 156, 220, 0.2);
+  }
+}
+
+/* Button styles using brand colors */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  
+  &:hover {
+    background-color: #a84d87;
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(191, 93, 159, 0.3);
+  }
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-text-primary);
+  border: none;
+  
+  &:hover {
+    background-color: #d98f8f;
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(231, 164, 164, 0.3);
+  }
+}
+
+/* Card styles with brand border */
+.card {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Focus ring using Cold Purple */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Disabled state styling */
+input:disabled,
+textarea:disabled,
+select:disabled,
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Link styles with brand color */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  
+  &:hover {
+    color: #a84d87;
+    text-decoration: underline;
+  }
+}
+
+/* Selection color using brand palette */
+::selection {
+  background-color: var(--brand-shilo);
+  color: var(--color-text-primary);
+}
+
+::-moz-selection {
+  background-color: var(--brand-shilo);
+  color: var(--color-text-primary);
 }

@@ -1,72 +1,115 @@
+import Image from "next/image";
 import Link from "next/link";
+import styles from "./home.module.css";
 
-export default function Home() {
+type Tile = {
+  title: string;
+  description: string;
+  href: string;
+  badge?: string;
+};
+
+export default function HomePage() {
+  const tiles: Tile[] = [
+    {
+      title: "Sign in",
+      description: "Access your account and continue where you left off.",
+      href: "/auth",
+      badge: "Auth",
+    },
+    {
+      title: "Staff onboarding",
+      description: "Complete your profile, upload documents, submit for review.",
+      href: "/staff/onboarding",
+      badge: "Staff",
+    },
+    {
+      title: "My dashboard",
+      description: "Check your status, manage availability and notification preferences.",
+      href: "/staff/dashboard",
+      badge: "Staff",
+    },
+    {
+      title: "Register a setting",
+      description: "Create a setting account and manage onboarding steps.",
+      href: "/settings/register",
+      badge: "Settings",
+    },
+    {
+      title: "Admin, Staff",
+      description: "Review staff profiles and set verification status.",
+      href: "/admin/staff",
+      badge: "Admin",
+    },
+    {
+      title: "Admin, Settings",
+      description: "Verify settings and manage postcode gating.",
+      href: "/admin/settings",
+      badge: "Admin",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto">
-          <header className="text-center mb-16">
-            <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              REC APP
-            </h1>
-            <p className="text-xl text-gray-600">
-              Emergency Childcare Staffing Platform
-            </p>
-          </header>
-
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                For Staff
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Join our platform to find flexible childcare work opportunities in your area.
-              </p>
-              <Link
-                href="/staff/onboarding"
-                className="block w-full bg-blue-600 text-white text-center py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Start Onboarding
-              </Link>
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div className={styles.brand}>
+            <div className={styles.logoWrap}>
+              <Image
+                src="/stafferoo-logo.png"
+                alt="Stafferoo"
+                width={220}
+                height={60}
+                priority
+                className={styles.logo}
+              />
             </div>
 
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                For Settings
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Find qualified emergency cover staff for your childcare setting within 2 hours.
+            <div className={styles.brandText}>
+              <h1 className={styles.title}>Stafferoo</h1>
+              <p className={styles.subtitle}>
+                Staff onboarding and bookings, built for speed and compliance.
               </p>
-              <Link
-                href="/settings/register"
-                className="block w-full bg-indigo-600 text-white text-center py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
-              >
-                Register Setting
-              </Link>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-              Platform Status
-            </h3>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-3xl font-bold text-green-600 mb-2">✓</div>
-                <div className="text-sm text-gray-600">Database Connected</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-3xl font-bold text-green-600 mb-2">✓</div>
-                <div className="text-sm text-gray-600">ID Verification Ready</div>
-              </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-3xl font-bold text-yellow-600 mb-2">○</div>
-                <div className="text-sm text-gray-600">MVP Development</div>
-              </div>
-            </div>
+          <div className={styles.ctaRow}>
+            <Link href="/auth" className={styles.primaryButton}>
+              Sign in
+            </Link>
+            <Link href="/staff/onboarding" className={styles.secondaryButton}>
+              Start onboarding
+            </Link>
           </div>
-        </div>
+        </header>
+
+        <section className={styles.grid}>
+          {tiles.map((t) => (
+            <Link key={t.href} href={t.href} className={styles.card}>
+              <div className={styles.cardTop}>
+                {t.badge ? <span className={styles.badge}>{t.badge}</span> : null}
+              </div>
+
+              <div className={styles.cardBody}>
+                <div className={styles.cardTitle}>{t.title}</div>
+                <div className={styles.cardDesc}>{t.description}</div>
+              </div>
+
+              <div className={styles.cardFooter}>
+                <span className={styles.cardLinkText}>Open</span>
+                <span className={styles.cardArrow} aria-hidden="true">
+                  →
+                </span>
+              </div>
+            </Link>
+          ))}
+        </section>
+
+        <footer className={styles.footer}>
+          Admin routes are restricted. If you see access denied, add your email to
+          ADMIN_EMAIL_ALLOWLIST in .env.local.
+        </footer>
       </div>
-    </div>
+    </main>
   );
 }
