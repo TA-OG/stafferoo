@@ -1,30 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/app/lib/supabase-server';
+import { getAuthFromRequest } from '@/app/lib/auth';
 import { createUploadSchema } from '@/app/lib/validations/documents';
 import { z } from 'zod';
 
+function jsonError(status: number, code: string, message: string, details?: unknown) {
+  return NextResponse.json({ ok: false, error: { code, message, details } }, { status });
+}
+
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+
+  const auth = getAuthFromRequest(request);
+  if (!auth.ok) {
+    return jsonError(auth.status, auth.code, auth.message);
+  }
+  const { user, supabase } = auth;
+
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'You must be signed in to upload documents',
-          },
-        },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
     const { doc_type, filename } = createUploadSchema.parse(body);
 
@@ -38,18 +30,8 @@ export async function POST(request: NextRequest) {
       .createSignedUploadUrl(storagePath);
 
     if (signedUrlError || !signedUrlData) {
-      console.error('Signed URL error:', signedUrlError);
-      return NextResponse.json(
-        {
-          ok: false,
-          error: {
-            code: 'UPLOAD_URL_FAILED',
-            message: 'Failed to create upload URL',
-            details: signedUrlError?.message,
-          },
-        },
-        { status: 500 }
-      );
+      console.error('[create-upload]', { requestId, userId: user.id, error: signedUrlError });
+      return jsonError(500, "UPLOAD_URL_FAILED", "Failed to generate upload URL");
     }
 
     return NextResponse.json({
@@ -62,29 +44,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid upload request',
-            details: error.errors,
-          },
-        },
-        { status: 400 }
-      );
+      console.error('[create-upload]', { requestId, errors: error.errors });
+      return jsonError(400, "VALIDATION_ERROR", "Invalid input data", error.flatten());
     }
-
-    console.error('Unexpected error:', error);
-    return NextResponse.json(
-      {
-        ok: false,
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: 'An unexpected error occurred',
-        },
-      },
-      { status: 500 }
-    );
+    console.error('[create-upload]', { requestId, error });
+    return jsonError(500, "INTERNAL_ERROR", "Unexpected error");
   }
 }

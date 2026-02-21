@@ -1,133 +1,109 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/app/lib/supabase-server';
+import { getAuthFromRequest } from '@/app/lib/auth';
 import { confirmUploadSchema } from '@/app/lib/validations/documents';
 import { z } from 'zod';
 
+function jsonError(status: number, code: string, message: string, details?: unknown) {
+  return NextResponse.json({ ok: false, error: { code, message, details } }, { status });
+}
+
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+
+  const auth = getAuthFromRequest(request);
+  if (!auth.ok) {
+    return jsonError(auth.status, auth.code, auth.message);
+  }
+  const { user, supabase } = auth;
+
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'You must be signed in to confirm uploads',
-          },
-        },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
-    const { doc_type, storage_path, original_filename, mime_type, size_bytes } =
-      confirmUploadSchema.parse(body);
+    const validated = confirmUploadSchema.parse(body);
 
-    const { data: existingDoc } = await supabase
+    // PRIMARY PATH: direct insert — works once migration 0008 is applied which
+    // fixes the RLS policy to use `auth.uid() = staff_id` directly (no subquery
+    // that touches auth.users).
+    const { data: insertedRow, error: insertError } = await supabase
       .from('staff_documents')
+      .insert({
+        staff_id:          user.id,
+        doc_type:          validated.doc_type,
+        storage_path:      validated.storage_path,
+        original_filename: validated.original_filename,
+        mime_type:         validated.mime_type,
+        size_bytes:        validated.size_bytes,
+        status:            'pending',
+      })
       .select('id')
-      .eq('staff_id', user.id)
-      .eq('doc_type', doc_type)
       .single();
 
-    if (existingDoc) {
-      const { error: updateError } = await supabase
-        .from('staff_documents')
-        .update({
-          storage_path,
-          original_filename,
-          mime_type,
-          size_bytes,
-          status: 'pending',
-          uploaded_at: new Date().toISOString(),
-        })
-        .eq('id', existingDoc.id);
-
-      if (updateError) {
-        console.error('Update error:', updateError);
-        return NextResponse.json(
-          {
-            ok: false,
-            error: {
-              code: 'UPDATE_FAILED',
-              message: 'Failed to update document record',
-              details: updateError.message,
-            },
-          },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({
-        ok: true,
-        data: { document_id: existingDoc.id, updated: true },
-      });
-    } else {
-      const { data: insertData, error: insertError } = await supabase
-        .from('staff_documents')
-        .insert({
-          staff_id: user.id,
-          doc_type,
-          storage_path,
-          original_filename,
-          mime_type,
-          size_bytes,
-          status: 'pending',
-        })
-        .select('id')
-        .single();
-
-      if (insertError || !insertData) {
-        console.error('Insert error:', insertError);
-        return NextResponse.json(
-          {
-            ok: false,
-            error: {
-              code: 'INSERT_FAILED',
-              message: 'Failed to create document record',
-              details: insertError?.message,
-            },
-          },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({
-        ok: true,
-        data: { document_id: insertData.id, created: true },
-      });
+    if (!insertError) {
+      return NextResponse.json({ ok: true, data: { id: insertedRow.id, doc_type: validated.doc_type } });
     }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid confirmation data',
-            details: error.errors,
-          },
-        },
-        { status: 400 }
+
+    // FALLBACK PATH: RPC via SECURITY DEFINER function.
+    // Handles the case where the schema cache hasn't reloaded after migration
+    // (PostgREST needs NOTIFY pgrst, 'reload schema' or a restart).
+    // Log the insert error so we can track when this fallback is hit.
+    console.warn('[confirm-upload] direct insert failed, trying RPC fallback', {
+      requestId,
+      userId: user.id,
+      insertCode:    insertError.code,
+      insertMessage: insertError.message,
+    });
+
+    const { data: newDocId, error: rpcError } = await supabase.rpc('insert_staff_document', {
+      p_staff_id:          user.id,
+      p_doc_type:          validated.doc_type,
+      p_storage_path:      validated.storage_path,
+      p_original_filename: validated.original_filename,
+      p_mime_type:         validated.mime_type,
+      p_size_bytes:        validated.size_bytes,
+    });
+
+    if (rpcError) {
+      // Both paths failed — log everything to aid debugging.
+      console.error('[confirm-upload] both insert paths failed', {
+        requestId,
+        userId:        user.id,
+        insertCode:    insertError.code,
+        insertMessage: insertError.message,
+        insertHint:    insertError.hint,
+        rpcCode:       rpcError.code,
+        rpcMessage:    rpcError.message,
+        rpcHint:       rpcError.hint,
+        rpcDetails:    rpcError.details,
+      });
+
+      // Return the most actionable error message to the client.
+      const isSchemaCache =
+        rpcError.message?.includes('Could not find the function') ||
+        rpcError.code === 'PGRST202';
+
+      if (isSchemaCache) {
+        return jsonError(
+          503,
+          'SCHEMA_CACHE_STALE',
+          'Database function not yet available — this is a one-time deploy issue. ' +
+          'Please run `NOTIFY pgrst, \'reload schema\';` in the Supabase SQL editor, then retry.'
+        );
+      }
+
+      return jsonError(
+        500,
+        'DB_ERROR',
+        `Failed to save document record: ${rpcError.message}`
       );
     }
 
-    console.error('Unexpected error:', error);
-    return NextResponse.json(
-      {
-        ok: false,
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: 'An unexpected error occurred',
-        },
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: true, data: { id: newDocId, doc_type: validated.doc_type } });
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error('[confirm-upload] validation error', { requestId, errors: error.errors });
+      return jsonError(400, 'VALIDATION_ERROR', 'Invalid input data', error.flatten());
+    }
+    console.error('[confirm-upload] unexpected error', { requestId, error });
+    return jsonError(500, 'INTERNAL_ERROR', 'Unexpected error saving document record');
   }
 }
