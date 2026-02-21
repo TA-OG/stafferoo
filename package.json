@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "gate": "npm run lint && npm run build && npm run test"
+    "gate": "npm run lint && npm run build && npm run test",
+    "worker": "node --env-file=.env.local node_modules/.bin/tsx worker/index.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.0.10",
@@ -35,6 +36,7 @@
     "supabase": "^2.76.11",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "tsx": "^4.19.2",
     "vitest": "^3.2.4"
   }
 }
