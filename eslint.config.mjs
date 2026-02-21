@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The worker is a standalone Node.js process — not a Next.js page.
+    // Exclude it from Next.js-specific lint rules.
+    "worker/**",
   ]),
 ]);
 
