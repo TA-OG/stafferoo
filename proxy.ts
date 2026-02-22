@@ -2,7 +2,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 export async function proxy(request: NextRequest) {
-  const response = NextResponse.next();
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -13,18 +15,28 @@ export async function proxy(request: NextRequest) {
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      getAll() {
-        return request.cookies.getAll();
+      get(name: string) {
+        return request.cookies.get(name)?.value;
       },
-      setAll(cookies: Array<{ name: string; value: string; options?: CookieOptions }>) {
-        for (const cookie of cookies) {
-          response.cookies.set(cookie.name, cookie.value, cookie.options);
-        }
+      set(name: string, value: string, options: CookieOptions) {
+        // Write cookie back into the cloned request so downstream handlers see it
+        request.cookies.set({ name, value, ...options });
+        response = NextResponse.next({
+          request: { headers: request.headers },
+        });
+        response.cookies.set({ name, value, ...options });
+      },
+      remove(name: string, options: CookieOptions) {
+        request.cookies.set({ name, value: "", ...options });
+        response = NextResponse.next({
+          request: { headers: request.headers },
+        });
+        response.cookies.set({ name, value: "", ...options });
       },
     },
   });
 
-  // Refresh session if needed, and persist cookies to the response.
+  // Refresh session if expired and write updated cookie back to the browser
   await supabase.auth.getUser();
 
   return response;

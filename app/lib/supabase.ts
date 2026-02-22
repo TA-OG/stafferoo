@@ -1,17 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 
-function getSupabaseUrl(): string {
-  if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-  }
-  return process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://placeholder.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder-anon-key';
 
-function getSupabaseAnonKey(): string {
-  if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
-  }
-  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
-}
-
-export const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
+// createBrowserClient stores the session in cookies (not localStorage), so
+// Next.js API routes can read it server-side via createSupabaseServerClient.
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
