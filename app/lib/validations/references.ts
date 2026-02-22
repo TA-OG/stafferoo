@@ -104,6 +104,15 @@ export const personalReferenceSchema = z.object({
   referee_name:     z.string().min(2, 'Referee full name is required').max(100),
   referee_position: z.string().max(100).optional(),
   referee_email:    emailSchema,
+  /** Optional — only relevant when the personal referee works at an Ofsted setting. */
+  setting_urn:      z
+    .string()
+    .max(20)
+    .refine(
+      (v) => v === '' || /^\d{6,9}$|^EY\d{6,9}$/i.test(v),
+      'URN should be a 6–9 digit number or start with EY'
+    )
+    .optional(),
 });
 
 export type PersonalReferenceInput = z.infer<typeof personalReferenceSchema>;

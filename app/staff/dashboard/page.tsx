@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '@/app/lib/supabase';
+import LoginGate from '@/app/components/LoginGate';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -251,7 +252,7 @@ function Toggle({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-export default function StaffDashboard() {
+function StaffDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
@@ -291,13 +292,9 @@ export default function StaffDashboard() {
     let cancelled = false;
 
     async function load() {
-      const { data: { user }, error: authErr } = await supabase.auth.getUser();
-      if (authErr || !user) {
-        router.push('/auth?redirectTo=/staff/dashboard');
-        return;
-      }
+      const { data: { user } } = await supabase.auth.getUser();
       if (cancelled) return;
-      setUserEmail(user.email ?? '');
+      setUserEmail(user?.email ?? '');
 
       const res = await fetch('/api/staff/dashboard');
       const json = await res.json() as { ok: boolean; data?: DashboardData; error?: { code: string; message: string } };
@@ -762,5 +759,13 @@ export default function StaffDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function StaffDashboardPage() {
+  return (
+    <LoginGate>
+      <StaffDashboard />
+    </LoginGate>
   );
 }

@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
         p_personal_referee_position:     personal.referee_position ?? '',
         p_personal_referee_email:        personal.referee_email,
         p_personal_email_domain:         extractEmailDomain(personal.referee_email),
+        p_personal_setting_urn:          personal.setting_urn ?? '',
       }
     );
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '@/app/lib/supabase';
+import LoginGate from '@/app/components/LoginGate';
 import Step1AccountStatus from '@/app/components/onboarding/Step1AccountStatus';
 import Step2ProfileBasics from '@/app/components/onboarding/Step2ProfileBasics';
 import Step3Compliance from '@/app/components/onboarding/Step3Compliance';
@@ -79,7 +80,7 @@ function EncouragingMessage({ step }: { step: number }) {
   );
 }
 
-export default function StaffOnboarding() {
+function StaffOnboarding() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [userEmail, setUserEmail] = useState('');
@@ -449,5 +450,13 @@ export default function StaffOnboarding() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function StaffOnboardingPage() {
+  return (
+    <LoginGate>
+      <StaffOnboarding />
+    </LoginGate>
   );
 }

@@ -98,6 +98,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
       referee_name:     '',
       referee_position: '',
       referee_email:    '',
+      setting_urn:      '',
       status:           'not_sent',
     },
   });
@@ -183,6 +184,8 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
       errs.pers_referee_email = 'Email address is required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(q.referee_email))
       errs.pers_referee_email = 'Please enter a valid email address';
+    if (q.setting_urn && !/^\d{6,9}$|^EY\d{6,9}$/i.test(q.setting_urn))
+      errs.pers_setting_urn = 'URN should be 6–9 digits, or start with EY';
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -211,6 +214,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
             referee_name:     refs.personal.referee_name,
             referee_position: refs.personal.referee_position || undefined,
             referee_email:    refs.personal.referee_email,
+            setting_urn:      refs.personal.setting_urn || undefined,
           },
         }),
       });
@@ -424,6 +428,23 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
                 type="email"
                 value={refs.personal.referee_email}
                 onChange={(e) => setPersField('referee_email', e.target.value)}
+                className={inputClass}
+                disabled={persStatus === 'submitted'}
+              />
+            </Field>
+
+            <Field
+              label="Ofsted URN (optional)"
+              error={errors.pers_setting_urn}
+              hint="Only needed if your referee works at an Ofsted-registered setting"
+            >
+              <input
+                type="text"
+                value={refs.personal.setting_urn ?? ''}
+                onChange={(e) =>
+                  setPersField('setting_urn', e.target.value.replace(/\s/g, ''))
+                }
+                placeholder="e.g. 123456"
                 className={inputClass}
                 disabled={persStatus === 'submitted'}
               />
