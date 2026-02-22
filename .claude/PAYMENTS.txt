@@ -1,0 +1,27 @@
+PAYMENTS
+
+for settings: 
+- we invoice monthly pro-rata to accommodate which week of the month they sign up
+- everyone pays on subscription 28th day of the month, for the next month
+- setting pay for staff hours booked the previous week on the weds after
+- [CHECK THIS FEATURE LOGIC TO MANAGE AUTOMATED ACCOUNTING AND INTEGRATION WITH STRIPE] settings can fund a bursary to draw from to cover staff bookings.
+- ability to pay for the year at 10 month discount)
+- settings get notification to confirm hours booked with staff member and that they are happy with invoice, payment is expected within 3 days.
+
+For Staff:
+
+- they work a week in hand
+- paid weekly after that
+- invoice submitted on a Friday, staff must confirm their worked hours and flag discrepancies.
+
+
+*****
+
+Feature add:
+
+- settings have options for recurring bookings for the same staff member
+- full time buyout clause and price
+- chat feature between settings and staff, only once they are booked to work together
+- settings needs function to book more than one staff member per day
+- settings can build and upload safeguarding/ H&S safety orientation to their profile to ensure new staff are sufficiently prepared (mandatory)
+- staff also tick and agree to DBS declaration to ensure they are fit and suitable for working in this environment.

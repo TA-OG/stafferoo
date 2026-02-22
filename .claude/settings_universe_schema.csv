@@ -1,0 +1,33 @@
+column,type,purpose
+setting_id,string,Internal UUID for your master table
+source_system,string,"Primary source, for example ofsted_childcare, dfe_gias, ees_schools_colleges, places_osm, companies_house"
+source_id,string,"Source unique ID, for example Ofsted provider URN, DfE URN"
+source_url,string,Where the record came from
+setting_name,string,Registered or trading name
+setting_type,string,"Normalised type, early_years_group, childminder, school_primary, school_secondary, school_special, ap_pru, college_fe, wraparound, holiday_club, leisure_creche, hospitality_kidsclub, other"
+regulator,string,"Ofsted, DfE, None"
+regulator_id,string,Ofsted URN or DfE URN where applicable
+company_number,string,Companies House number if matched
+uprn,string,Unique Property Reference Number if matched
+address_1,string,
+address_2,string,
+town_city,string,
+county,string,
+postcode,string,
+la_code,string,Local authority code
+la_name,string,Local authority name
+region,string,DfE region if available
+latitude,float,
+longitude,float,
+contact_email,string,
+contact_phone,string,
+website,string,
+status,string,"Active, closed, unknown"
+open_date,date,If available
+close_date,date,If available
+needs_cover_staff_likelihood,string,"high, medium, low"
+notes,string,Free text notes
+dedupe_key_primary,string,URN or Ofsted provider id
+dedupe_key_secondary,string,Normalised name plus postcode
+created_at,datetime,
+updated_at,datetime,

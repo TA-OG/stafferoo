@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm ls:*)",
+      "Bash(node -e:*)",
+      "Bash(npm run gate:*)",
+      "Bash(del \"C:\\\\dev\\\\rec-app\\\\supabase\\\\migrations\\\\0012_fix_step4_types.sql\")",
+      "Bash(dir:*)",
+      "Bash(npm install:*)",
+      "Bash(del \"C:\\\\dev\\\\rec-app\\\\supabase\\\\migrations\\\\0015_fix_references_upsert.sql\")",
+      "Bash(npx eslint:*)",
+      "Bash(git config:*)",
+      "Bash(git -C \"C:/dev/rec-app\" config core.hooksPath .githooks)",
+      "Bash(powershell -Command \"Set-Location ''C:\\\\dev\\\\rec-app''; git config core.hooksPath .githooks; Write-Output ''done''\")",
+      "Bash(powershell -Command \"Set-Location ''C:\\\\dev\\\\rec-app''; powershell -ExecutionPolicy Bypass -File scripts\\\\new_slice_branch.ps1 001 catch_up_baseline 2>&1\")",
+      "Bash(powershell -Command:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -Command \"Set-Location ''C:\\\\dev\\\\rec-app''; & ''.\\\\scripts\\\\new_slice_branch.ps1'' -SliceNumber ''001'' -Slug ''catch_up_baseline'' 2>&1\")",
+      "Bash(powershell -ExecutionPolicy Bypass -Command \"Set-Location ''C:\\\\dev\\\\rec-app''; & ''.\\\\scripts\\\\new_slice_branch.ps1'' -SliceNumber ''002'' -Slug ''worker'' 2>&1\")",
+      "Bash(powershell -ExecutionPolicy Bypass -Command \"Set-Location ''C:\\\\dev\\\\rec-app''; & ''.\\\\scripts\\\\new_slice_branch.ps1'' -SliceNumber ''003'' -Slug ''postcode_density'' 2>&1\")",
+      "Bash(xargs:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File scripts/new_slice_branch.ps1:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(grep:*)",
+      "Bash(python3:*)",
+      "Bash(node /c/dev/rec-app/write_register_page.js:*)",
+      "Bash(printf:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(git check-ignore:*)"
+    ]
+  }
+}
