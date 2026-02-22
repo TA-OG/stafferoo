@@ -20,10 +20,19 @@ export async function createSupabaseServerClient() {
           return cookieStore.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set({ name, value, ...options });
+          // set() throws in Server Components — safe to swallow, proxy handles it
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch {
+            // no-op
+          }
         },
         remove(name: string, options: CookieOptions) {
-          cookieStore.set({ name, value: "", ...options });
+          try {
+            cookieStore.set({ name, value: "", ...options });
+          } catch {
+            // no-op
+          }
         },
       },
     }

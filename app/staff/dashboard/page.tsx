@@ -299,18 +299,18 @@ export default function StaffDashboard() {
       if (cancelled) return;
       setUserEmail(user.email ?? '');
 
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch('/api/staff/dashboard', {
-        headers: session?.access_token
-          ? { Authorization: `Bearer ${session.access_token}` }
-          : {},
-      });
-      const json = await res.json() as { ok: boolean; data?: DashboardData };
+      const res = await fetch('/api/staff/dashboard');
+      const json = await res.json() as { ok: boolean; data?: DashboardData; error?: { code: string; message: string } };
 
       if (cancelled) return;
 
       if (!json.ok) {
-        setError('Failed to load dashboard. Please refresh.');
+        // Session cookie missing or expired — bounce back to auth
+        if (res.status === 401) {
+          router.push('/auth?redirectTo=/staff/dashboard');
+          return;
+        }
+        setError(`Failed to load dashboard (${json.error?.code ?? res.status}). Please refresh.`);
         setLoading(false);
         return;
       }
