@@ -13,6 +13,7 @@
  */
 
 import { useState } from 'react';
+import { supabase } from '@/app/lib/supabase';
 import {
   isFreeEmailDomain,
   extractEmailDomain,
@@ -199,9 +200,18 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
 
     setSending(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        window.location.href = '/auth?reason=session_expired';
+        return;
+      }
+
       const resp = await fetch('/api/staff/onboarding/references/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           professional: {
             referee_name:     refs.professional.referee_name,
@@ -218,6 +228,11 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
           },
         }),
       });
+
+      if (resp.status === 401) {
+        window.location.href = '/auth?reason=session_expired';
+        return;
+      }
 
       const result = await resp.json();
 

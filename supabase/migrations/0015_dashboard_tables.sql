@@ -28,6 +28,7 @@ begin
 end;
 $$;
 
+drop trigger if exists trg_notification_prefs_updated_at on staff_notification_preferences;
 create trigger trg_notification_prefs_updated_at
   before update on staff_notification_preferences
   for each row execute function set_updated_at_notification_prefs();
@@ -49,14 +50,17 @@ create index if not exists idx_staff_unavailability_staff_starts
 -- ── 4. RLS: notification preferences ────────────────────────────────────────
 alter table staff_notification_preferences enable row level security;
 
+drop policy if exists "staff_notification_prefs_select_own" on staff_notification_preferences;
 create policy "staff_notification_prefs_select_own"
   on staff_notification_preferences for select
   using (auth.uid() = staff_id);
 
+drop policy if exists "staff_notification_prefs_insert_own" on staff_notification_preferences;
 create policy "staff_notification_prefs_insert_own"
   on staff_notification_preferences for insert
   with check (auth.uid() = staff_id);
 
+drop policy if exists "staff_notification_prefs_update_own" on staff_notification_preferences;
 create policy "staff_notification_prefs_update_own"
   on staff_notification_preferences for update
   using (auth.uid() = staff_id);
@@ -64,14 +68,17 @@ create policy "staff_notification_prefs_update_own"
 -- ── 5. RLS: unavailability ───────────────────────────────────────────────────
 alter table staff_unavailability enable row level security;
 
+drop policy if exists "staff_unavailability_select_own" on staff_unavailability;
 create policy "staff_unavailability_select_own"
   on staff_unavailability for select
   using (auth.uid() = staff_id);
 
+drop policy if exists "staff_unavailability_insert_own" on staff_unavailability;
 create policy "staff_unavailability_insert_own"
   on staff_unavailability for insert
   with check (auth.uid() = staff_id);
 
+drop policy if exists "staff_unavailability_delete_own" on staff_unavailability;
 create policy "staff_unavailability_delete_own"
   on staff_unavailability for delete
   using (auth.uid() = staff_id);

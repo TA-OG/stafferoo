@@ -293,7 +293,7 @@ begin
 end;
 $$;
 
-grant execute on function upsert_staff_references to anon, authenticated;
+grant execute on function upsert_staff_references(text,text,text,text,text,text,text,text,text,text) to anon, authenticated;
 
 
 -- ----------------------------------------------------------------------------

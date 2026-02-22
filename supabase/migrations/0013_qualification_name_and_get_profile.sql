@@ -112,7 +112,7 @@ begin
 end;
 $$;
 
-grant execute on function upsert_staff_profile to anon, authenticated;
+grant execute on function upsert_staff_profile(uuid, text, text, text, date, text, text, text, text, text, integer, text, integer, text, text, boolean, text) to anon, authenticated;
 
 
 -- ============================================================================
