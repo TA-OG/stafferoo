@@ -1,114 +1,52 @@
-import Image from "next/image";
-import Link from "next/link";
-import styles from "./home.module.css";
-
-type Tile = {
-  title: string;
-  description: string;
-  href: string;
-  badge?: string;
-};
+import Image from 'next/image';
+import Link from 'next/link';
 
 export default function HomePage() {
-  const tiles: Tile[] = [
-    {
-      title: "Sign in",
-      description: "Access your account and continue where you left off.",
-      href: "/auth",
-      badge: "Auth",
-    },
-    {
-      title: "Staff onboarding",
-      description: "Complete your profile, upload documents, submit for review.",
-      href: "/staff/onboarding",
-      badge: "Staff",
-    },
-    {
-      title: "My dashboard",
-      description: "Check your status, manage availability and notification preferences.",
-      href: "/staff/dashboard",
-      badge: "Staff",
-    },
-    {
-      title: "Register a setting",
-      description: "Create a setting account and manage onboarding steps.",
-      href: "/settings/register",
-      badge: "Settings",
-    },
-    {
-      title: "Admin, Staff",
-      description: "Review staff profiles and set verification status.",
-      href: "/admin/staff",
-      badge: "Admin",
-    },
-    {
-      title: "Admin, Settings",
-      description: "Verify settings and manage postcode gating.",
-      href: "/admin/settings",
-      badge: "Admin",
-    },
-  ];
-
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <div className={styles.brand}>
-            <div className={styles.logoWrap}>
-              <Image
-                src="/stafferoo-logo.png"
-                alt="Stafferoo"
-                width={220}
-                height={60}
-                priority
-                className={styles.logo}
-              />
-            </div>
+    <main className="min-h-screen bg-[#f8f0f5] flex flex-col items-center justify-center px-4 py-16">
+      <div className="flex flex-col items-center text-center max-w-xl w-full">
 
-            <div className={styles.brandText}>
-              <h1 className={styles.title}>Stafferoo</h1>
-              <p className={styles.subtitle}>
-                Staff onboarding and bookings, built for speed and compliance.
-              </p>
-            </div>
-          </div>
+        {/* Logo */}
+        <Image
+          src="/stafferoo-logo.png"
+          alt="Stafferoo"
+          width={260}
+          height={80}
+          priority
+          className="object-contain"
+        />
 
-          <div className={styles.ctaRow}>
-            <Link href="/auth" className={styles.primaryButton}>
-              Sign in
-            </Link>
-            <Link href="/staff/onboarding" className={styles.secondaryButton}>
-              Start onboarding
-            </Link>
-          </div>
-        </header>
+        {/* Brand name below logo */}
+        <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-gray-900">
+          Stafferoo
+        </h1>
 
-        <section className={styles.grid}>
-          {tiles.map((t) => (
-            <Link key={t.href} href={t.href} className={styles.card}>
-              <div className={styles.cardTop}>
-                {t.badge ? <span className={styles.badge}>{t.badge}</span> : null}
-              </div>
+        {/* Strapline */}
+        <p className="mt-3 text-lg text-gray-500 leading-relaxed">
+          Qualified early years staff, on demand.
+        </p>
 
-              <div className={styles.cardBody}>
-                <div className={styles.cardTitle}>{t.title}</div>
-                <div className={styles.cardDesc}>{t.description}</div>
-              </div>
+        {/* CTA buttons */}
+        <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <Link
+            href="/settings/register"
+            className="flex flex-col items-center justify-center gap-1 rounded-2xl bg-[#bf5d9f] text-white px-10 py-6 shadow-lg hover:opacity-90 transition-opacity w-full sm:w-56"
+          >
+            <span className="text-2xl" aria-hidden="true">🏫</span>
+            <span className="text-base font-bold leading-tight">Early Years Business</span>
+            <span className="text-xs opacity-75 font-medium">Sign up / Log in</span>
+          </Link>
 
-              <div className={styles.cardFooter}>
-                <span className={styles.cardLinkText}>Open</span>
-                <span className={styles.cardArrow} aria-hidden="true">
-                  →
-                </span>
-              </div>
-            </Link>
-          ))}
-        </section>
+          <Link
+            href="/staff/onboarding"
+            className="flex flex-col items-center justify-center gap-1 rounded-2xl bg-white border-2 border-[rgba(180,156,220,0.6)] text-gray-900 px-10 py-6 shadow-md hover:border-[#bf5d9f] hover:shadow-lg transition-all w-full sm:w-56"
+          >
+            <span className="text-2xl" aria-hidden="true">🎓</span>
+            <span className="text-base font-bold leading-tight">Early Years Qualified Staff</span>
+            <span className="text-xs text-gray-400 font-medium">Sign up / Log in</span>
+          </Link>
+        </div>
 
-        <footer className={styles.footer}>
-          Admin routes are restricted. If you see access denied, add your email to
-          ADMIN_EMAIL_ALLOWLIST in .env.local.
-        </footer>
       </div>
     </main>
   );

@@ -97,10 +97,21 @@ select {
   }
 }
 
+/* ── Global rule: brand-pink backgrounds always get white bold text ──────────
+   Applies to any element using the brand mulberry (#bf5d9f) as a background,
+   including Tailwind utilities bg-[#bf5d9f] and the CSS custom property.     */
+[style*="#bf5d9f"],
+[class*="bg-[#bf5d9f]"],
+[class*="bg-\\[\\#bf5d9f\\]"] {
+  color: white !important;
+  font-weight: 700 !important;
+}
+
 /* Button styles using brand colors */
 .btn-primary {
   background-color: var(--color-primary);
-  color: white;
+  color: white !important;
+  font-weight: 700 !important;
   border: none;
   
   &:hover {

@@ -487,15 +487,16 @@ export default function StaffDashboard() {
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-start">
             <Image
-              src="/brand/stafferoo-logo.png"
+              src="/stafferoo-logo.png"
               alt="Stafferoo"
               width={120}
               height={45}
               className="object-contain"
               priority
             />
+            <span className="text-[11px] font-bold text-[#bf5d9f] tracking-wide mt-0.5">Stafferoo</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-xs text-gray-500 hidden sm:block truncate max-w-[200px]">{userEmail}</span>

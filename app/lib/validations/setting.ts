@@ -9,6 +9,7 @@ const ofstedUrnRegex = /^EY\d{6}$/;
 
 export const settingRegistrationSchema = z.object({
   setting_name: z.string().min(2, 'Setting name must be at least 2 characters').max(100),
+  manager_name: z.string().min(2, 'Manager name must be at least 2 characters').max(100),
   ofsted_urn: z.string().regex(ofstedUrnRegex, 'Ofsted URN must be in format EY123456'),
   ofsted_rating: z.enum(['Outstanding', 'Good', 'Requires Improvement', 'Inadequate']).optional(),
   email: z.string().email('Invalid email address'),
