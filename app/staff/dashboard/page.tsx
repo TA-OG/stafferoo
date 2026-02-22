@@ -310,7 +310,7 @@ export default function StaffDashboard() {
           router.push('/auth?redirectTo=/staff/dashboard');
           return;
         }
-        setError(json.error?.message ?? `Error ${res.status} (${json.error?.code}). Please refresh.`);
+        setError('Failed to load dashboard. Please refresh.');
         setLoading(false);
         return;
       }

@@ -55,10 +55,9 @@ export async function GET() {
       unavailabilityResult.error;
 
     if (firstError) {
-      const dbMsg = firstError.message ?? 'unknown';
       console.error('[GET /api/staff/dashboard] query error', { requestId, error: firstError });
       return NextResponse.json(
-        { ok: false, error: { code: 'FETCH_FAILED', message: `DB: ${dbMsg}`, requestId } },
+        { ok: false, error: { code: 'FETCH_FAILED', message: 'Failed to load dashboard data', requestId } },
         { status: 500 }
       );
     }
