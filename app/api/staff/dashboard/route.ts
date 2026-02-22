@@ -47,10 +47,18 @@ export async function GET() {
           .order('starts_on', { ascending: true }),
       ]);
 
-    if (profileResult.error) {
-      console.error('[GET /api/staff/dashboard] profile error', { requestId, error: profileResult.error });
+    // Surface the first query error we find — makes diagnosing missing tables/columns easy
+    const firstError =
+      profileResult.error ??
+      verificationResult.error ??
+      prefsResult.error ??
+      unavailabilityResult.error;
+
+    if (firstError) {
+      const dbMsg = firstError.message ?? 'unknown';
+      console.error('[GET /api/staff/dashboard] query error', { requestId, error: firstError });
       return NextResponse.json(
-        { ok: false, error: { code: 'FETCH_FAILED', message: 'Failed to load profile', requestId } },
+        { ok: false, error: { code: 'FETCH_FAILED', message: `DB: ${dbMsg}`, requestId } },
         { status: 500 }
       );
     }
