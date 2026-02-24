@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '@/app/lib/supabase';
 import LoginGate from '@/app/components/LoginGate';
+import PageHeader from '@/app/components/PageHeader';
 import Step1AccountStatus from '@/app/components/onboarding/Step1AccountStatus';
 import Step2ProfileBasics from '@/app/components/onboarding/Step2ProfileBasics';
 import Step3Compliance from '@/app/components/onboarding/Step3Compliance';
@@ -456,7 +457,10 @@ function StaffOnboarding() {
 export default function StaffOnboardingPage() {
   return (
     <LoginGate>
-      <StaffOnboarding />
+      <>
+        <PageHeader />
+        <StaffOnboarding />
+      </>
     </LoginGate>
   );
 }

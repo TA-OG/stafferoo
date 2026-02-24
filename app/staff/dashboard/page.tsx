@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '@/app/lib/supabase';
 import LoginGate from '@/app/components/LoginGate';
+import PageHeader from '@/app/components/PageHeader';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -765,7 +766,10 @@ function StaffDashboard() {
 export default function StaffDashboardPage() {
   return (
     <LoginGate>
-      <StaffDashboard />
+      <>
+        <PageHeader />
+        <StaffDashboard />
+      </>
     </LoginGate>
   );
 }
