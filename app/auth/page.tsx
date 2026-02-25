@@ -41,18 +41,42 @@ function AuthForm() {
 
       if (data.user) {
         // If a specific redirectTo was given (e.g. from a protected page), honour it.
-        // Otherwise route by role so the user lands on their dashboard, not the homepage.
         if (redirectTo !== '/') {
           router.push(redirectTo);
           return;
         }
-        const userRole = data.user.user_metadata?.role as string | undefined;
-        if (userRole === 'staff') {
+
+        // 1. Try role from user_metadata (set at sign-up).
+        let resolvedRole = data.user.user_metadata?.role as string | undefined;
+
+        // 2. If metadata has no role, query the DB — handles accounts created
+        //    without metadata (e.g. via Supabase console or early dev accounts).
+        if (!resolvedRole) {
+          const { data: staffRow } = await supabase
+            .from('staff_profiles')
+            .select('id')
+            .eq('id', data.user.id)
+            .maybeSingle();
+          if (staffRow) {
+            resolvedRole = 'staff';
+          } else {
+            const { data: settingRow } = await supabase
+              .from('setting_profiles')
+              .select('id')
+              .eq('id', data.user.id)
+              .maybeSingle();
+            if (settingRow) {
+              resolvedRole = 'setting';
+            }
+          }
+        }
+
+        if (resolvedRole === 'staff') {
           router.push('/staff/dashboard');
-        } else if (userRole === 'setting') {
+        } else if (resolvedRole === 'setting') {
           router.push('/settings/dashboard');
         } else {
-          // No role set — likely an admin account; the admin page enforces its own access check.
+          // No profile found — treat as admin; the admin page enforces its own access check.
           router.push('/admin');
         }
       }
