@@ -1,6 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 
+interface Tile {
+  title: string;
+  description: string;
+  href: string;
+  badge: string;
+}
+
 export default function HomePage() {
   const tiles: Tile[] = [
     {
