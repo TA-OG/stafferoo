@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { settingRegistrationSchema, type SettingRegistrationInput } from '@/app/lib/validations/setting';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
 
@@ -83,6 +84,17 @@ export default function SettingsRegister() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-3xl mx-auto">
+        <div className="flex justify-center mb-8">
+          <Image
+            src="/stafferoo-logo.png"
+            alt="Stafferoo"
+            width={112}
+            height={32}
+            priority
+            className="object-contain"
+          />
+        </div>
+
         <Breadcrumbs items={[{ label: 'Register Business' }]} />
 
         <div className="bg-white rounded-lg shadow-lg p-8">
