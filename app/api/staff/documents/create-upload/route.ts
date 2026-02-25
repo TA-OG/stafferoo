@@ -21,9 +21,8 @@ export async function POST(request: NextRequest) {
     const { doc_type, filename } = createUploadSchema.parse(body);
 
     const fileExtension = filename.split('.').pop() || 'bin';
-    const timestamp = Date.now();
-    const randomSuffix = Math.random().toString(36).substring(2, 8);
-    const storagePath = `${user.id}/${doc_type}_${timestamp}_${randomSuffix}.${fileExtension}`;
+    const uniqueId = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
+    const storagePath = `${user.id}/${doc_type}_${uniqueId}.${fileExtension}`;
 
     const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from('staff-documents')

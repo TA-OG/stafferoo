@@ -80,8 +80,9 @@ export default function StaffVerificationCard({ staff }: Props) {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Action failed');
+      if (!response.ok || !data.ok) {
+        const msg = data.error?.message ?? data.error ?? 'Action failed';
+        throw new Error(typeof msg === 'string' ? msg : 'Action failed');
       }
 
       router.refresh();
