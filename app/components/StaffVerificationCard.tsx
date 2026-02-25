@@ -45,6 +45,8 @@ interface Staff {
   drugs_alcohol_declaration?: string;
   disqualified_person_declaration: boolean;
   submitted_at?: string;
+  created_at?: string;
+  verification_status?: string | null;
   staff_documents?: StaffDocument[];
 }
 
@@ -146,11 +148,29 @@ export default function StaffVerificationCard({ staff }: Props) {
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900 mb-1">
-              {staff.full_name}
-            </h3>
+            <div className="flex items-center gap-3 mb-1">
+              <h3 className="text-xl font-bold text-gray-900">
+                {staff.full_name}
+              </h3>
+              {!staff.verification_status && (
+                <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-medium rounded">
+                  Incomplete
+                </span>
+              )}
+              {staff.verification_status === 'incomplete' && (
+                <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-medium rounded">
+                  Incomplete
+                </span>
+              )}
+            </div>
             <p className="text-sm text-gray-500">
-              Submitted: {formatDateTime(staff.submitted_at)}
+              {staff.submitted_at ? (
+                <>Submitted: {formatDateTime(staff.submitted_at)}</>
+              ) : staff.created_at ? (
+                <>Registered: {formatDateTime(staff.created_at)}</>
+              ) : (
+                'Not yet submitted'
+              )}
             </p>
           </div>
           <button
@@ -375,7 +395,14 @@ export default function StaffVerificationCard({ staff }: Props) {
         )}
 
         <div className="mt-6 flex gap-3">
-          {showNotesInput === 'approve' ? (
+          {/* Incomplete applications cannot be approved/rejected */}
+          {(!staff.verification_status || staff.verification_status === 'incomplete') ? (
+            <div className="w-full bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+              <p className="text-sm text-amber-800">
+                <span className="font-semibold">Application not submitted.</span> This staff member has not completed onboarding and submitted their application for review.
+              </p>
+            </div>
+          ) : showNotesInput === 'approve' ? (
             <>
               <button
                 onClick={() => handleAction('approve')}

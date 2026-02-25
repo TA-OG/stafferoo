@@ -25,9 +25,12 @@ export default async function AdminStaff({ searchParams }: PageProps) {
   let query = supabase
     .from('staff_profiles')
     .select('*, staff_documents(id, doc_type, status)')
-    .order('submitted_at', { ascending: false });
+    .order('created_at', { ascending: false });
 
-  if (statusFilter !== 'all') {
+  if (statusFilter === 'incomplete') {
+    // incomplete = null or 'incomplete' status
+    query = query.or('verification_status.is.null,verification_status.eq.incomplete');
+  } else if (statusFilter !== 'all') {
     query = query.eq('verification_status', statusFilter);
   }
 
@@ -43,7 +46,7 @@ export default async function AdminStaff({ searchParams }: PageProps) {
     .select('verification_status');
 
   const counts = allStaff?.reduce((acc, s) => {
-    const status = s.verification_status || 'unknown';
+    const status = s.verification_status || 'incomplete';
     acc[status] = (acc[status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>) || {};
@@ -51,12 +54,14 @@ export default async function AdminStaff({ searchParams }: PageProps) {
   const pendingCount = counts['pending'] || 0;
   const approvedCount = counts['approved'] || 0;
   const rejectedCount = counts['rejected'] || 0;
+  const incompleteCount = counts['incomplete'] || 0;
   const totalCount = allStaff?.length || 0;
 
   const filterLabels: Record<string, string> = {
     pending: 'Pending Review',
     approved: 'Approved',
     rejected: 'Rejected',
+    incomplete: 'Incomplete',
     all: 'All Staff',
   };
 
@@ -92,7 +97,7 @@ export default async function AdminStaff({ searchParams }: PageProps) {
             <div className="flex flex-wrap border-b border-gray-200">
               <Link
                 href="/admin/staff?status=pending"
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-5 py-4 text-sm font-medium border-b-2 transition-colors ${
                   statusFilter === 'pending'
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -101,8 +106,18 @@ export default async function AdminStaff({ searchParams }: PageProps) {
                 Pending ({pendingCount})
               </Link>
               <Link
+                href="/admin/staff?status=incomplete"
+                className={`px-5 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  statusFilter === 'incomplete'
+                    ? 'border-amber-600 text-amber-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Incomplete ({incompleteCount})
+              </Link>
+              <Link
                 href="/admin/staff?status=approved"
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-5 py-4 text-sm font-medium border-b-2 transition-colors ${
                   statusFilter === 'approved'
                     ? 'border-green-600 text-green-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -112,7 +127,7 @@ export default async function AdminStaff({ searchParams }: PageProps) {
               </Link>
               <Link
                 href="/admin/staff?status=rejected"
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-5 py-4 text-sm font-medium border-b-2 transition-colors ${
                   statusFilter === 'rejected'
                     ? 'border-red-600 text-red-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -122,7 +137,7 @@ export default async function AdminStaff({ searchParams }: PageProps) {
               </Link>
               <Link
                 href="/admin/staff?status=all"
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-5 py-4 text-sm font-medium border-b-2 transition-colors ${
                   statusFilter === 'all'
                     ? 'border-gray-900 text-gray-900'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -142,6 +157,11 @@ export default async function AdminStaff({ searchParams }: PageProps) {
               {statusFilter === 'pending' && (
                 <p className="text-sm text-gray-400">
                   When staff complete onboarding and submit their application, they will appear here.
+                </p>
+              )}
+              {statusFilter === 'incomplete' && (
+                <p className="text-sm text-gray-400">
+                  Staff who started but haven't submitted their application will appear here.
                 </p>
               )}
               {statusFilter === 'all' && totalCount === 0 && (

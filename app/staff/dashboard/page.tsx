@@ -536,6 +536,26 @@ export default function StaffDashboard() {
           />
         </div>
 
+        {/* Browse Jobs CTA for verified staff */}
+        {verif.status === 'verified' && (
+          <div className="bg-white rounded-xl border border-[rgba(180,156,220,0.42)] p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-gray-900 text-sm">Find work</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Browse available shifts and apply for jobs that match your preferences.
+                </p>
+              </div>
+              <Link
+                href="/staff/jobs"
+                className="bg-[#bf5d9f] text-white text-sm font-semibold px-5 py-2 rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Browse Jobs
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Notification preferences */}
         <div className="bg-white rounded-xl border border-[rgba(180,156,220,0.42)] p-5">
           <div className="flex items-center justify-between mb-4">

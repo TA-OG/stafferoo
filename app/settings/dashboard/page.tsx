@@ -391,6 +391,27 @@ export default function SettingDashboard() {
           </div>
         )}
 
+        {/* Quick actions for approved settings */}
+        {profile?.verification_status === 'approved' && (
+          <div className="bg-white rounded-xl border border-[rgba(180,156,220,0.42)] p-5">
+            <h2 className="font-bold text-gray-900 text-sm mb-4">Quick actions</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Link 
+                href="/settings/jobs/new" 
+                className="flex items-center justify-center bg-[#bf5d9f] text-white text-sm font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity"
+              >
+                + Post a New Job
+              </Link>
+              <Link 
+                href="/settings/jobs" 
+                className="flex items-center justify-center border-2 border-[#bf5d9f] text-[#bf5d9f] text-sm font-semibold py-3 px-6 rounded-lg hover:bg-[#bf5d9f]/5 transition-colors"
+              >
+                View My Job Postings
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Setting details (read-only) */}
         {profile && (
           <div className="bg-white rounded-xl border border-[rgba(180,156,220,0.42)] p-5">
