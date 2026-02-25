@@ -159,7 +159,10 @@ export const GET = createApiRoute(async (request, requestId) => {
 
     let query = supabase
       .from('job_requests')
-      .select('*')
+      .select(`
+        *,
+        booking_responses(count)
+      `)
       .eq('setting_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -177,10 +180,11 @@ export const GET = createApiRoute(async (request, requestId) => {
       );
     }
 
-    // Add role labels
-    const jobsWithLabels = jobs?.map(job => ({
+    // Add role labels and response counts
+    const jobsWithLabels = jobs?.map((job) => ({
       ...job,
       role_label: jobRoleLabels[(job.role_required as JobRole) || 'nursery_practitioner'] || job.role_required,
+      response_count: job.booking_responses?.[0]?.count || 0,
     })) || [];
 
     return NextResponse.json({

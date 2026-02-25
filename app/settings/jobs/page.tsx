@@ -19,9 +19,7 @@ interface JobRequest {
   estimated_total: number;
   status: 'draft' | 'open' | 'filled' | 'cancelled' | 'completed';
   created_at: string;
-  _count?: {
-    job_applications: number;
-  };
+  response_count: number;
 }
 
 export default function JobsPage() {
@@ -223,17 +221,28 @@ export default function JobsPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="ml-4 text-right">
+                  <div className="ml-4 text-right shrink-0">
                     <p className="text-lg font-bold text-[#bf5d9f]">
                       £{job.estimated_total?.toFixed(2) || '0.00'}
                     </p>
                     <p className="text-xs text-gray-500">estimated total</p>
-                    <Link
-                      href={`/settings/jobs/${job.id}`}
-                      className="mt-2 inline-block text-sm text-[#bf5d9f] hover:underline"
-                    >
-                      View Details →
-                    </Link>
+                    <div className="mt-2 space-y-1">
+                      <Link
+                        href={`/settings/jobs/${job.id}/applicants`}
+                        className="block text-sm font-medium text-green-600 hover:text-green-700 hover:underline"
+                      >
+                        {job.response_count > 0 
+                          ? `View ${job.response_count} Applicant${job.response_count !== 1 ? 's' : ''} →`
+                          : 'View Applicants →'
+                        }
+                      </Link>
+                      <Link
+                        href={`/settings/jobs/${job.id}`}
+                        className="block text-sm text-gray-500 hover:text-gray-700 hover:underline"
+                      >
+                        Details →
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
