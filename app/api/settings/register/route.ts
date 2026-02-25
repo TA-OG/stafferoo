@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/app/lib/supabase-server';
-import { requireAuth } from '@/app/lib/admin';
+import { getAuthFromRequest } from '@/app/lib/auth';
 import { settingRegistrationSchema } from '@/app/lib/validations/setting';
 
 function normalisePostcode(input: string): string {
@@ -9,12 +8,17 @@ function normalisePostcode(input: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireAuth();
+    const auth = getAuthFromRequest(request);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { error: auth.message },
+        { status: auth.status },
+      );
+    }
+    const { user, supabase } = auth;
 
     const body = await request.json();
     const validated = settingRegistrationSchema.parse(body);
-
-    const supabase = await createClient();
 
     const { data: existing } = await supabase
       .from('setting_profiles')

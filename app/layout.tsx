@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Stafferoo",
-  description: "Staff onboarding and bookings for early years settings",
+  description: "Staff onboarding and bookings for Early Years Childcare Businesses",
 };
 
 export default function RootLayout({

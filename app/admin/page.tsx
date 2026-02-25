@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/app/lib/supabase-server";
 import { isCurrentUserAdmin } from "@/app/lib/admin";
+import Breadcrumbs from "@/app/components/Breadcrumbs";
 
 export default async function AdminDashboard() {
   const isAdmin = await isCurrentUserAdmin();
@@ -35,17 +36,17 @@ export default async function AdminDashboard() {
       colour: "bg-blue-50 border-blue-200 text-blue-700",
     },
     {
-      title: "Settings Queue",
+      title: "Business Queue",
       href: "/admin/settings",
       count: pendingSettings,
-      description: "Pending setting verifications",
+      description: "Pending business verifications",
       colour: "bg-emerald-50 border-emerald-200 text-emerald-700",
     },
     {
       title: "Postcode Density",
       href: "/admin/postcodes",
       count: null,
-      description: "Staff and settings by postcode",
+      description: "Staff and businesses by postcode",
       colour: "bg-amber-50 border-amber-200 text-amber-700",
     },
   ];
@@ -53,6 +54,8 @@ export default async function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
+        <Breadcrumbs items={[{ label: "Admin" }]} />
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Admin Dashboard
