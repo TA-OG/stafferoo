@@ -33,3 +33,14 @@ export const settingVerificationSchema = z.object({
 });
 
 export type SettingVerificationInput = z.infer<typeof settingVerificationSchema>;
+
+export const settingProfileUpdateSchema = z.object({
+  phone: z.string().min(10, 'Phone number must be at least 10 digits').max(15),
+  operation_hours_start: z.string().optional(),
+  operation_hours_end: z.string().optional(),
+  number_of_children: z.number().int().positive().optional().nullable(),
+  team_size: z.number().int().positive().optional().nullable(),
+  has_parking: z.boolean(),
+});
+
+export type SettingProfileUpdateInput = z.infer<typeof settingProfileUpdateSchema>;
