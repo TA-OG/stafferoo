@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createAdminClient } from '@/app/lib/supabase-server';
 import { isCurrentUserAdmin } from '@/app/lib/admin';
 import StaffDetailVerification from '@/app/components/StaffDetailVerification';
+import Breadcrumbs from '@/app/components/Breadcrumbs';
 
 export default async function AdminStaffDetail({ params }: { params: Promise<{ id: string }> }) {
   const isAdmin = await isCurrentUserAdmin();
@@ -40,14 +41,7 @@ export default async function AdminStaffDetail({ params }: { params: Promise<{ i
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-6">
-          <Link
-            href="/admin/staff"
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-          >
-            ← Back to Staff List
-          </Link>
-        </div>
+        <Breadcrumbs items={[{ label: 'Admin', href: '/admin' }, { label: 'Staff Queue', href: '/admin/staff' }, { label: 'Details' }]} />
         
         <StaffDetailVerification staff={staff} />
       </div>

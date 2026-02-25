@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createClient } from '@/app/lib/supabase-server';
 import { isCurrentUserAdmin } from '@/app/lib/admin';
 import StaffVerificationCard from '@/app/components/StaffVerificationCard';
+import Breadcrumbs from '@/app/components/Breadcrumbs';
 
 export default async function AdminStaff() {
   const isAdmin = await isCurrentUserAdmin();
@@ -25,13 +26,15 @@ export default async function AdminStaff() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
+        <Breadcrumbs items={[{ label: 'Admin', href: '/admin' }, { label: 'Staff Queue' }]} />
+
         {/* Admin navigation */}
         <nav className="flex gap-6 mb-6 text-sm">
           <Link href="/admin/staff" className="text-gray-900 font-semibold border-b-2 border-gray-900 pb-0.5">
             Staff Queue
           </Link>
           <Link href="/admin/settings" className="text-blue-600 hover:text-blue-700 font-medium">
-            Settings Queue
+            Business Queue
           </Link>
           <Link href="/admin/postcodes" className="text-blue-600 hover:text-blue-700 font-medium">
             Postcode Density

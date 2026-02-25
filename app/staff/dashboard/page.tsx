@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '@/app/lib/supabase';
+import Breadcrumbs from '@/app/components/Breadcrumbs';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -507,6 +508,8 @@ export default function StaffDashboard() {
             </button>
           </div>
         </div>
+
+        <Breadcrumbs items={[{ label: 'Staff', href: '/staff/dashboard' }, { label: 'Dashboard' }]} />
 
         <h1 className="text-2xl font-bold text-gray-900">
           {data?.profile?.full_name ? `Hi, ${data.profile.full_name.split(' ')[0]}` : 'My Dashboard'}

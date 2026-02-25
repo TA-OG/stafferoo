@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '@/app/lib/supabase';
+import Breadcrumbs from '@/app/components/Breadcrumbs';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -369,6 +370,8 @@ export default function SettingDashboard() {
             </button>
           </div>
         </div>
+
+        <Breadcrumbs items={[{ label: 'Business', href: '/settings/dashboard' }, { label: 'Dashboard' }]} />
 
         <h1 className="text-2xl font-bold text-gray-900">
           {profile?.setting_name ?? 'My Dashboard'}

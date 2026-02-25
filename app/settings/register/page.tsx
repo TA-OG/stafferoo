@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { settingRegistrationSchema, type SettingRegistrationInput } from '@/app/lib/validations/setting';
+import Breadcrumbs from '@/app/components/Breadcrumbs';
 
 export default function SettingsRegister() {
   const router = useRouter();
@@ -82,9 +83,11 @@ export default function SettingsRegister() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-3xl mx-auto">
+        <Breadcrumbs items={[{ label: 'Register Business' }]} />
+
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Register Your Setting
+            Register Your Business
           </h1>
           <p className="text-gray-600 mb-8">
             Complete your registration to start booking emergency staff.
@@ -100,7 +103,7 @@ export default function SettingsRegister() {
             {/* Setting Name */}
             <div>
               <label htmlFor="setting_name" className="block text-sm font-medium text-gray-700 mb-2">
-                Setting Name <span className="text-red-500">*</span>
+                Business Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
