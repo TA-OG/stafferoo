@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthFromRequest } from '@/app/lib/auth';
 import { settingRegistrationSchema } from '@/app/lib/validations/setting';
+import { createApiRoute, rateLimits } from '@/app/lib/api-wrapper';
 
 function normalisePostcode(input: string): string {
   return input.trim().toUpperCase().replace(/\s+/g, '');
 }
 
-export async function POST(request: NextRequest) {
+export const POST = createApiRoute(async (request, requestId) => {
   try {
     const auth = getAuthFromRequest(request);
     if (!auth.ok) {
       return NextResponse.json(
-        { error: auth.message },
+        { ok: false, error: { code: 'UNAUTHORIZED', message: auth.message, requestId } },
         { status: auth.status },
       );
     }
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existing) {
-      return NextResponse.json({ error: 'Setting profile already exists' }, { status: 400 });
+      return NextResponse.json({ ok: false, error: { code: 'ALREADY_EXISTS', message: 'Setting profile already exists', requestId } }, { status: 400 });
     }
 
     const { data: existingUrn } = await supabase
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingUrn) {
-      return NextResponse.json({ error: 'This Ofsted URN is already registered' }, { status: 400 });
+      return NextResponse.json({ ok: false, error: { code: 'URN_TAKEN', message: 'This Ofsted URN is already registered', requestId } }, { status: 400 });
     }
 
     const gatingEnabled = process.env.POSTCODE_GATING !== 'false';
@@ -54,8 +55,8 @@ export async function POST(request: NextRequest) {
         .maybeSingle();
 
       if (postcodeErr) {
-        console.error('Postcode check error:', postcodeErr);
-        return NextResponse.json({ error: 'Failed to validate postcode availability' }, { status: 500 });
+        console.error('[POST /api/settings/register] Postcode check error:', { requestId, error: postcodeErr });
+        return NextResponse.json({ ok: false, error: { code: 'POSTCODE_CHECK_FAILED', message: 'Failed to validate postcode availability', requestId } }, { status: 500 });
       }
 
       if (enabledPostcode?.postcode) {
@@ -75,25 +76,25 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (insertError) {
-      console.error('Insert error:', insertError);
-      return NextResponse.json({ error: 'Failed to create setting profile' }, { status: 500 });
+      console.error('[POST /api/settings/register] Insert error:', { requestId, error: insertError });
+      return NextResponse.json({ ok: false, error: { code: 'INSERT_FAILED', message: 'Failed to create setting profile', requestId } }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, setting });
+    return NextResponse.json({ ok: true, data: { setting } });
   } catch (error: unknown) {
-    console.error('Registration error:', error);
+    console.error('[POST /api/settings/register]', { requestId, error });
 
     if (typeof error === 'object' && error !== null && 'errors' in error) {
       return NextResponse.json(
-        { error: 'Validation failed', details: (error as { errors: unknown }).errors },
+        { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Validation failed', details: (error as { errors: unknown }).errors, requestId } },
         { status: 400 },
       );
     }
 
     if (error instanceof Error) {
-      return NextResponse.json({ error: error.message || 'Registration failed' }, { status: 500 });
+      return NextResponse.json({ ok: false, error: { code: 'INTERNAL_ERROR', message: error.message || 'Registration failed', requestId } }, { status: 500 });
     }
 
-    return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
+    return NextResponse.json({ ok: false, error: { code: 'INTERNAL_ERROR', message: 'Registration failed', requestId } }, { status: 500 });
   }
-}
+}, { rateLimit: rateLimits.apiMutation });

@@ -86,11 +86,28 @@ function AuthForm() {
     }
   };
 
+  const validatePassword = (pwd: string): string | null => {
+    if (pwd.length < 12) return 'Password must be at least 12 characters';
+    if (!/[A-Z]/.test(pwd)) return 'Password must contain an uppercase letter';
+    if (!/[a-z]/.test(pwd)) return 'Password must contain a lowercase letter';
+    if (!/\d/.test(pwd)) return 'Password must contain a number';
+    if (!/[@$!%*?&]/.test(pwd)) return 'Password must contain a special character (@$!%*?&)';
+    return null;
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setMessage(null);
+
+    // Client-side password validation
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      setLoading(false);
+      return;
+    }
 
     try {
       // Build the post-confirmation redirect URL for staff so that clicking
@@ -248,14 +265,23 @@ function AuthForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={12}
+                  pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$"
                   className="w-full px-4 py-2 rounded-lg"
-                  placeholder="••••••••"
+                  placeholder="••••••••••••"
+                  aria-describedby="password-requirements"
                 />
                 {mode === 'signup' && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    Must be at least 6 characters
-                  </p>
+                  <div id="password-requirements" className="mt-2 text-xs text-gray-500 space-y-1">
+                    <p>Password must have:</p>
+                    <ul className="list-disc list-inside space-y-0.5 ml-1">
+                      <li className={password.length >= 12 ? 'text-green-600' : ''}>At least 12 characters</li>
+                      <li className={/[A-Z]/.test(password) ? 'text-green-600' : ''}>One uppercase letter</li>
+                      <li className={/[a-z]/.test(password) ? 'text-green-600' : ''}>One lowercase letter</li>
+                      <li className={/\d/.test(password) ? 'text-green-600' : ''}>One number</li>
+                      <li className={/[@$!%*?&]/.test(password) ? 'text-green-600' : ''}>One special character (@$!%*?&)</li>
+                    </ul>
+                  </div>
                 )}
               </div>
 
