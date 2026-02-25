@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { supabase } from '@/app/lib/supabase';
 import { settingRegistrationSchema, type SettingRegistrationInput } from '@/app/lib/validations/setting';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
 
@@ -42,15 +43,27 @@ export default function SettingsRegister() {
     setIsSubmitting(true);
 
     try {
-      // Validate with Zod
       const validated = settingRegistrationSchema.parse(formData);
 
-      // Submit to API
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        window.location.href = '/auth?role=setting&redirectTo=/settings/register';
+        return;
+      }
+
       const response = await fetch('/api/settings/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify(validated),
       });
+
+      if (response.status === 401) {
+        window.location.href = '/auth?role=setting&redirectTo=/settings/register';
+        return;
+      }
 
       const data = await response.json();
 
