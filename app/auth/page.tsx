@@ -69,10 +69,21 @@ function AuthForm() {
     setMessage(null);
 
     try {
+      // Build the post-confirmation redirect URL for staff so that clicking
+      // the confirmation email lands on the callback page which then forwards
+      // to onboarding once the session is established.
+      const emailRedirectTo =
+        role === 'staff'
+          ? `${window.location.origin}/auth/callback?next=/staff/onboarding`
+          : undefined;
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: role ? { data: { role } } : undefined,
+        options: {
+          ...(role ? { data: { role } } : {}),
+          ...(emailRedirectTo ? { emailRedirectTo } : {}),
+        },
       });
 
       if (signUpError) {
@@ -90,7 +101,9 @@ function AuthForm() {
         }
 
         if (role === 'staff') {
-          router.push('/staff/onboarding');
+          // Always go to the check-email page — Supabase will send a
+          // confirmation link, and the callback page handles onboarding redirect.
+          router.push(`/auth/check-email?email=${encodeURIComponent(email)}`);
         } else if (role === 'setting') {
           router.push('/settings/register');
         } else {
