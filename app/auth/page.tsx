@@ -1,8 +1,9 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
+import { logger } from '@/app/lib/logger';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -21,11 +22,24 @@ function AuthForm() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  // Log page load for debugging
+  useEffect(() => {
+    logger.info('Auth page loaded', {
+      mode: initialMode,
+      role: initialRole,
+      redirectTo,
+      userAgent: navigator.userAgent,
+    });
+  }, [initialMode, initialRole, redirectTo]);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setMessage(null);
+
+    const requestId = crypto.randomUUID();
+    logger.info('Sign in attempt', { requestId, email });
 
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -34,10 +48,13 @@ function AuthForm() {
       });
 
       if (signInError) {
+        logger.security('Sign in failed', { requestId, email, error: signInError.message });
         setError(signInError.message);
         setLoading(false);
         return;
       }
+
+      logger.info('Sign in successful', { requestId, email, userId: data.user?.id });
 
       if (data.user) {
         // If a specific redirectTo was given (e.g. from a protected page), honour it.
@@ -101,9 +118,13 @@ function AuthForm() {
     setError(null);
     setMessage(null);
 
+    const requestId = crypto.randomUUID();
+    logger.info('Sign up attempt', { requestId, email, role });
+
     // Client-side password validation
     const passwordError = validatePassword(password);
     if (passwordError) {
+      logger.warn('Sign up validation failed', { requestId, error: passwordError });
       setError(passwordError);
       setLoading(false);
       return;
@@ -113,10 +134,13 @@ function AuthForm() {
       // Build the post-confirmation redirect URL for staff so that clicking
       // the confirmation email lands on the callback page which then forwards
       // to onboarding once the session is established.
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const emailRedirectTo =
         role === 'staff'
-          ? `${window.location.origin}/auth/callback?next=/staff/onboarding`
+          ? `${origin}/auth/callback?next=/staff/onboarding`
           : undefined;
+      
+      logger.debug('Sign up config', { requestId, emailRedirectTo, hasRole: !!role });
 
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
@@ -128,6 +152,7 @@ function AuthForm() {
       });
 
       if (signUpError) {
+        logger.error('Sign up failed', signUpError, { requestId, email });
         const msg = signUpError.message.toLowerCase();
         if (msg.includes('rate limit') || msg.includes('email rate')) {
           setError('Too many sign-up attempts. Please wait a few minutes and try again.');
@@ -139,7 +164,10 @@ function AuthForm() {
       }
 
       if (data.user) {
+        logger.info('Sign up successful', { requestId, email, userId: data.user.id, role });
+        
         if (data.user.identities && data.user.identities.length === 0) {
+          logger.security('Duplicate sign up attempt', { requestId, email });
           setError('An account with this email already exists. Please sign in instead.');
           setMode('signin');
           setLoading(false);
