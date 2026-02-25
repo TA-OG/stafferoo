@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/app/lib/supabase-server";
 import { isCurrentUserAdmin } from "@/app/lib/admin";
+import Breadcrumbs from "@/app/components/Breadcrumbs";
 
 export default async function AdminDashboard() {
   const isAdmin = await isCurrentUserAdmin();
@@ -53,6 +54,8 @@ export default async function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
+        <Breadcrumbs items={[{ label: "Admin" }]} />
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Admin Dashboard

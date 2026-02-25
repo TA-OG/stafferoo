@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createClient } from '@/app/lib/supabase-server';
 import { isCurrentUserAdmin } from '@/app/lib/admin';
 import SettingVerificationCard from '@/app/components/SettingVerificationCard';
+import Breadcrumbs from '@/app/components/Breadcrumbs';
 
 export default async function AdminSettings() {
   // Check admin access
@@ -27,6 +28,8 @@ export default async function AdminSettings() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
+        <Breadcrumbs items={[{ label: 'Admin', href: '/admin' }, { label: 'Business Queue' }]} />
+
         {/* Admin navigation */}
         <nav className="flex gap-6 mb-6 text-sm">
           <Link href="/admin/staff" className="text-blue-600 hover:text-blue-700 font-medium">

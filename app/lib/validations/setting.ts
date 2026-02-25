@@ -4,8 +4,7 @@ import { z } from 'zod';
  * Validation schemas for setting profiles
  */
 
-// Ofsted URN format: EY followed by 6 digits
-const ofstedUrnRegex = /^EY\d{6}$/;
+const ofstedUrnRegex = /^EY\d{6}$/i;
 
 export const settingRegistrationSchema = z.object({
   setting_name: z.string().min(2, 'Business name must be at least 2 characters').max(100),

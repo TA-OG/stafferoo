@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createAdminClient } from '@/app/lib/supabase-server';
 import { isCurrentUserAdmin } from '@/app/lib/admin';
 import PostcodeDensityTable, { type PostcodeRow } from '@/app/components/PostcodeDensityTable';
+import Breadcrumbs from '@/app/components/Breadcrumbs';
 
 type SortKey = 'postcode' | 'staff_count' | 'settings_count';
 const VALID_SORT_KEYS: SortKey[] = ['postcode', 'staff_count', 'settings_count'];
@@ -46,6 +47,8 @@ export default async function AdminPostcodesPage({
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
+        <Breadcrumbs items={[{ label: 'Admin', href: '/admin' }, { label: 'Postcode Density' }]} />
+
         {/* Admin navigation */}
         <nav className="flex gap-6 mb-6 text-sm">
           <Link href="/admin/staff" className="text-blue-600 hover:text-blue-700 font-medium">

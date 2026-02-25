@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { supabase } from '@/app/lib/supabase';
 import { settingRegistrationSchema, type SettingRegistrationInput } from '@/app/lib/validations/setting';
+import Breadcrumbs from '@/app/components/Breadcrumbs';
 
 export default function SettingsRegister() {
   const router = useRouter();
@@ -40,15 +43,27 @@ export default function SettingsRegister() {
     setIsSubmitting(true);
 
     try {
-      // Validate with Zod
       const validated = settingRegistrationSchema.parse(formData);
 
-      // Submit to API
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        window.location.href = '/auth?role=setting&redirectTo=/settings/register';
+        return;
+      }
+
       const response = await fetch('/api/settings/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify(validated),
       });
+
+      if (response.status === 401) {
+        window.location.href = '/auth?role=setting&redirectTo=/settings/register';
+        return;
+      }
 
       const data = await response.json();
 
@@ -82,6 +97,19 @@ export default function SettingsRegister() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-3xl mx-auto">
+        <div className="flex justify-center mb-8">
+          <Image
+            src="/stafferoo-logo.png"
+            alt="Stafferoo"
+            width={112}
+            height={32}
+            priority
+            className="object-contain"
+          />
+        </div>
+
+        <Breadcrumbs items={[{ label: 'Register Business' }]} />
+
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Register Your Business
@@ -126,8 +154,11 @@ export default function SettingsRegister() {
                 id="ofsted_urn"
                 name="ofsted_urn"
                 value={formData.ofsted_urn || ''}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => {
+                  e.target.value = e.target.value.toUpperCase();
+                  handleChange(e);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
                 placeholder="EY123456"
                 maxLength={8}
               />

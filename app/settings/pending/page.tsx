@@ -1,7 +1,11 @@
+import Breadcrumbs from '@/app/components/Breadcrumbs';
+
 export default function SettingsPending() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
+        <Breadcrumbs items={[{ label: 'Registration Pending' }]} />
+
         <div className="bg-white rounded-lg shadow-lg p-8 text-center">
           <div className="text-6xl mb-4">⏳</div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
