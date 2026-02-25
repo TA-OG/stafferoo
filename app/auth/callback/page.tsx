@@ -54,16 +54,27 @@ function CallbackHandler() {
     return (
       <div className="min-h-screen bg-[#f8f0f5] flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl border border-red-200 p-8 max-w-sm text-center">
-          <p className="text-red-700 font-medium mb-4">
+          <p className="text-red-700 font-medium mb-2">
             The confirmation link may have expired or already been used.
           </p>
-          <a
-            href="/auth"
-            className="text-sm font-semibold"
-            style={{ color: '#bf5d9f' }}
-          >
-            Back to sign in
-          </a>
+          <p className="text-gray-500 text-sm mb-6">
+            Request a new one and try again.
+          </p>
+          <div className="space-y-3">
+            <a
+              href="/auth/resend-confirmation"
+              className="block w-full py-2 px-4 rounded-lg text-sm font-semibold text-white"
+              style={{ backgroundColor: '#bf5d9f' }}
+            >
+              Resend confirmation email
+            </a>
+            <a
+              href="/auth"
+              className="block text-sm font-medium text-gray-500 hover:text-gray-800"
+            >
+              Back to sign in
+            </a>
+          </div>
         </div>
       </div>
     );

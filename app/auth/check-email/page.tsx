@@ -44,7 +44,17 @@ function CheckEmailContent() {
           </p>
 
           <div className="mt-8 pt-6 border-t border-gray-100 space-y-3 text-sm text-gray-500">
-            <p>Didn&apos;t receive it? Check your spam folder.</p>
+            <p>
+              Didn&apos;t receive it? Check your spam folder, or{' '}
+              <Link
+                href={`/auth/resend-confirmation?email=${encodeURIComponent(email)}`}
+                className="font-semibold"
+                style={{ color: '#bf5d9f' }}
+              >
+                resend the confirmation email
+              </Link>
+              .
+            </p>
             <p>
               Wrong email?{' '}
               <Link
