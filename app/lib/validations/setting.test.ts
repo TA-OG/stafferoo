@@ -22,7 +22,7 @@ describe('settingRegistrationSchema', () => {
   it('accepts a fully populated valid registration', () => {
     const result = settingRegistrationSchema.safeParse({
       ...validBase,
-      ofsted_rating: 'Outstanding',
+      ofsted_rating: 'Exceptional',
       address_line_2: 'Suite 1',
       has_parking: true,
       number_of_children: 30,
@@ -80,12 +80,34 @@ describe('settingRegistrationSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('accepts all valid Ofsted ratings', () => {
-    const ratings = ['Outstanding', 'Good', 'Requires Improvement', 'Inadequate'] as const;
+  it('accepts all valid Ofsted ratings (new 5-point scale, effective Nov 2025)', () => {
+    const ratings = [
+      'Exceptional',
+      'Strong',
+      'Expected Standard',
+      'Needs Attention',
+      'Urgent Improvement',
+    ] as const;
     for (const rating of ratings) {
       const result = settingRegistrationSchema.safeParse({ ...validBase, ofsted_rating: rating });
       expect(result.success).toBe(true);
     }
+  });
+
+  it('rejects an old Ofsted rating (Outstanding)', () => {
+    const result = settingRegistrationSchema.safeParse({
+      ...validBase,
+      ofsted_rating: 'Outstanding',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects an old Ofsted rating (Good)', () => {
+    const result = settingRegistrationSchema.safeParse({
+      ...validBase,
+      ofsted_rating: 'Good',
+    });
+    expect(result.success).toBe(false);
   });
 
   it('rejects an unrecognised Ofsted rating', () => {

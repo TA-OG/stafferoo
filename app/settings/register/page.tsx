@@ -150,10 +150,11 @@ export default function SettingsRegister() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Select rating</option>
-                <option value="Outstanding">Outstanding</option>
-                <option value="Good">Good</option>
-                <option value="Requires Improvement">Requires Improvement</option>
-                <option value="Inadequate">Inadequate</option>
+                <option value="Exceptional">Exceptional</option>
+                <option value="Strong">Strong</option>
+                <option value="Expected Standard">Expected Standard</option>
+                <option value="Needs Attention">Needs Attention</option>
+                <option value="Urgent Improvement">Urgent Improvement</option>
               </select>
               {errors.ofsted_rating && (
                 <p className="mt-1 text-sm text-red-600">{errors.ofsted_rating}</p>
