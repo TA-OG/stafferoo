@@ -33,7 +33,7 @@ export default async function AdminSettings() {
             Staff Queue
           </Link>
           <Link href="/admin/settings" className="text-gray-900 font-semibold border-b-2 border-gray-900 pb-0.5">
-            Settings Queue
+            Business Queue
           </Link>
           <Link href="/admin/postcodes" className="text-blue-600 hover:text-blue-700 font-medium">
             Postcode Density
@@ -42,16 +42,16 @@ export default async function AdminSettings() {
 
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Settings Verification Queue
+            Business Verification Queue
           </h1>
           <p className="text-gray-600">
-            Review and approve pending childcare setting registrations
+            Review and approve pending Early Years Childcare Business registrations
           </p>
         </div>
 
         {!pendingSettings || pendingSettings.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-8 text-center">
-            <p className="text-gray-500">No pending settings to review</p>
+            <p className="text-gray-500">No pending businesses to review</p>
           </div>
         ) : (
           <div className="space-y-4">

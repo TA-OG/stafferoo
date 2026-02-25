@@ -91,7 +91,7 @@ function StatusCard({ profile }: { profile: SettingProfile }) {
       border: 'border-green-200',
       icon: '✅',
       heading: "You're approved!",
-      body: 'Your setting is live on Stafferoo. You can now post jobs and connect with qualified staff.',
+      body: 'Your business is live on Stafferoo. You can now post jobs and connect with qualified staff.',
     },
     rejected: {
       bg: 'bg-red-50',
@@ -380,9 +380,9 @@ export default function SettingDashboard() {
         ) : (
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
             <p className="text-sm text-gray-700">
-              No setting profile found.{' '}
+              No business profile found.{' '}
               <a href="/settings/register" className="font-semibold text-[#bf5d9f] hover:underline">
-                Register your setting
+                Register your business
               </a>
             </p>
           </div>
@@ -391,7 +391,7 @@ export default function SettingDashboard() {
         {/* Setting details (read-only) */}
         {profile && (
           <div className="bg-white rounded-xl border border-[rgba(180,156,220,0.42)] p-5">
-            <h2 className="font-bold text-gray-900 text-sm mb-4">Setting details</h2>
+            <h2 className="font-bold text-gray-900 text-sm mb-4">Business details</h2>
             <div className="space-y-3">
               <InfoRow label="Ofsted URN" value={profile.ofsted_urn} />
               <InfoRow label="Ofsted rating" value={profile.ofsted_rating} />

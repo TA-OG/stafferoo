@@ -8,7 +8,7 @@ import { z } from 'zod';
 const ofstedUrnRegex = /^EY\d{6}$/;
 
 export const settingRegistrationSchema = z.object({
-  setting_name: z.string().min(2, 'Setting name must be at least 2 characters').max(100),
+  setting_name: z.string().min(2, 'Business name must be at least 2 characters').max(100),
   ofsted_urn: z.string().regex(ofstedUrnRegex, 'Ofsted URN must be in format EY123456'),
   ofsted_rating: z
     .enum(['Exceptional', 'Strong', 'Expected Standard', 'Needs Attention', 'Urgent Improvement'])

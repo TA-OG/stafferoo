@@ -84,7 +84,7 @@ export default function SettingsRegister() {
       <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Register Your Setting
+            Register Your Business
           </h1>
           <p className="text-gray-600 mb-8">
             Complete your registration to start booking emergency staff.
@@ -100,7 +100,7 @@ export default function SettingsRegister() {
             {/* Setting Name */}
             <div>
               <label htmlFor="setting_name" className="block text-sm font-medium text-gray-700 mb-2">
-                Setting Name <span className="text-red-500">*</span>
+                Business Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"

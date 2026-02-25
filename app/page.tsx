@@ -30,21 +30,15 @@ export default function HomePage() {
       badge: "Staff",
     },
     {
-      title: "Register a setting",
-      description: "Create a setting account and manage onboarding steps.",
+      title: "Register your business",
+      description: "Register your Early Years Childcare Business and start booking staff.",
       href: "/settings/register",
-      badge: "Settings",
+      badge: "Business",
     },
     {
-      title: "Admin, Staff",
-      description: "Review staff profiles and set verification status.",
-      href: "/admin/staff",
-      badge: "Admin",
-    },
-    {
-      title: "Admin, Settings",
-      description: "Verify settings and manage postcode gating.",
-      href: "/admin/settings",
+      title: "Admin Dashboard",
+      description: "Platform overview, verification queues, and postcode density.",
+      href: "/admin",
       badge: "Admin",
     },
   ];

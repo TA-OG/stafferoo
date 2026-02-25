@@ -78,7 +78,7 @@ export default function PostcodeDensityTable({ rows, currentSort, currentDir }: 
             </th>
             <th className={thClass}>
               <Link href={sortHref('settings_count')} className="hover:text-gray-700">
-                Approved Settings{sortIndicator('settings_count')}
+                Approved Businesses{sortIndicator('settings_count')}
               </Link>
             </th>
             <th className={thClass}>Status</th>

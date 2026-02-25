@@ -31,7 +31,7 @@ export default async function AdminStaff() {
             Staff Queue
           </Link>
           <Link href="/admin/settings" className="text-blue-600 hover:text-blue-700 font-medium">
-            Settings Queue
+            Business Queue
           </Link>
           <Link href="/admin/postcodes" className="text-blue-600 hover:text-blue-700 font-medium">
             Postcode Density
