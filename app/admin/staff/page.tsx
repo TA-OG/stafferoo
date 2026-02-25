@@ -161,7 +161,7 @@ export default async function AdminStaff({ searchParams }: PageProps) {
               )}
               {statusFilter === 'incomplete' && (
                 <p className="text-sm text-gray-400">
-                  Staff who started but haven't submitted their application will appear here.
+                  Staff who started but haven&apos;t submitted their application will appear here.
                 </p>
               )}
               {statusFilter === 'all' && totalCount === 0 && (
