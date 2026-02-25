@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '@/app/lib/supabase';
+import Breadcrumbs from '@/app/components/Breadcrumbs';
 import Step1AccountStatus from '@/app/components/onboarding/Step1AccountStatus';
 import Step2ProfileBasics from '@/app/components/onboarding/Step2ProfileBasics';
 import Step3Compliance from '@/app/components/onboarding/Step3Compliance';
@@ -308,6 +309,8 @@ export default function StaffOnboarding() {
             priority
           />
         </div>
+
+        <Breadcrumbs items={[{ label: 'Staff', href: '/staff/dashboard' }, { label: 'Onboarding' }]} />
 
         {/* Progress bar — hidden on completion screen (step 7) */}
         {currentStep <= TOTAL_STEPS && (
