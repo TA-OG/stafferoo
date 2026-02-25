@@ -139,7 +139,7 @@ function AuthForm() {
           </p>
         </div>
 
-        {mode === 'signup' && (
+        {mode === 'signup' && !initialRole && (
           <div className="flex gap-3 mb-6">
             <button
               type="button"
