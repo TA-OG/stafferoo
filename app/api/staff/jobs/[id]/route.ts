@@ -86,7 +86,7 @@ export const GET = createApiRoute(async (request, requestId) => {
 
     // Check if already applied
     const { data: existingApplication } = await supabase
-      .from('job_applications')
+      .from('booking_responses')
       .select('id, status')
       .eq('job_id', jobId)
       .eq('staff_id', user.id)

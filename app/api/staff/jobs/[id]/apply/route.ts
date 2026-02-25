@@ -88,7 +88,7 @@ export const POST = createApiRoute(async (request, requestId) => {
 
     // Check if already applied
     const { data: existingApplication } = await supabase
-      .from('job_applications')
+      .from('booking_responses')
       .select('id')
       .eq('job_id', jobId)
       .eq('staff_id', user.id)
@@ -115,7 +115,7 @@ export const POST = createApiRoute(async (request, requestId) => {
         job_id: jobId,
         staff_id: user.id,
         status: 'pending',
-        applied_at: new Date().toISOString(),
+        responded_at: new Date().toISOString(),
       })
       .select()
       .single();
