@@ -20,8 +20,13 @@ values (
 on conflict (id) do nothing;
 
 -- ============================================================================
--- STORAGE RLS POLICIES
+-- STORAGE RLS POLICIES (idempotent — drop before create)
 -- ============================================================================
+
+drop policy if exists "Staff can upload own documents"  on storage.objects;
+drop policy if exists "Staff can read own documents"    on storage.objects;
+drop policy if exists "Staff can delete own documents"  on storage.objects;
+drop policy if exists "Admins can read all documents"   on storage.objects;
 
 -- Allow authenticated users to upload to their own folder (user_id/...)
 create policy "Staff can upload own documents"

@@ -39,7 +39,7 @@ begin
 end;
 $$;
 
-grant execute on function upsert_staff_compliance to anon, authenticated;
+grant execute on function upsert_staff_compliance(uuid, boolean, text, date, text) to anon, authenticated;
 
 
 -- ============================================================================
@@ -96,7 +96,7 @@ begin
 end;
 $$;
 
-grant execute on function upsert_staff_health_safety to anon, authenticated;
+grant execute on function upsert_staff_health_safety(uuid, text, text, text, text, text, text, text, text, jsonb, text, text, boolean) to anon, authenticated;
 
 
 -- ============================================================================
@@ -128,7 +128,7 @@ begin
 end;
 $$;
 
-grant execute on function upsert_staff_signature to anon, authenticated;
+grant execute on function upsert_staff_signature(uuid, text) to anon, authenticated;
 
 
 -- ============================================================================

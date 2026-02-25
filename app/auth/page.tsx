@@ -153,7 +153,7 @@ function AuthForm() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
             <Image
-              src="/brand/stafferoo-logo.png"
+              src="/stafferoo-logo.png"
               alt="Stafferoo"
               width={300}
               height={113}

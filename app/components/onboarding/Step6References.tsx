@@ -21,16 +21,6 @@ import {
   PersonalReferenceInput,
 } from '@/app/lib/validations/references';
 
-async function getToken(): Promise<string | null> {
-  // Try the cached session first (reads from localStorage, no network call)
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session?.access_token) return session.access_token;
-
-  // Session missing or expired — attempt a token refresh before giving up
-  const { data: refreshData } = await supabase.auth.refreshSession();
-  return refreshData.session?.access_token ?? null;
-}
-
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -109,6 +99,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
       referee_name:     '',
       referee_position: '',
       referee_email:    '',
+      setting_urn:      '',
       status:           'not_sent',
     },
   });
@@ -186,7 +177,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
     else if (!/^\d{6,9}$|^EY\d{6,9}$/i.test(p.setting_urn))
       errs.prof_setting_urn = 'URN should be 6–9 digits, or start with EY';
     if (!p.setting_name.trim())
-      errs.prof_setting_name = 'Business name is required';
+      errs.prof_setting_name = 'Setting name is required';
 
     if (!q.referee_name.trim())
       errs.pers_referee_name = 'Full name is required';
@@ -194,6 +185,8 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
       errs.pers_referee_email = 'Email address is required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(q.referee_email))
       errs.pers_referee_email = 'Please enter a valid email address';
+    if (q.setting_urn && !/^\d{6,9}$|^EY\d{6,9}$/i.test(q.setting_urn))
+      errs.pers_setting_urn = 'URN should be 6–9 digits, or start with EY';
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -207,10 +200,9 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
 
     setSending(true);
     try {
-      const token = await getToken();
-      if (!token) {
-        // Session fully expired — redirect to auth with return URL
-        window.location.href = '/auth?reason=session_expired&redirectTo=/staff/onboarding';
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        window.location.href = '/auth?reason=session_expired';
         return;
       }
 
@@ -218,7 +210,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           professional: {
@@ -232,12 +224,13 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
             referee_name:     refs.personal.referee_name,
             referee_position: refs.personal.referee_position || undefined,
             referee_email:    refs.personal.referee_email,
+            setting_urn:      refs.personal.setting_urn || undefined,
           },
         }),
       });
 
       if (resp.status === 401) {
-        window.location.href = '/auth?reason=session_expired&redirectTo=/staff/onboarding';
+        window.location.href = '/auth?reason=session_expired';
         return;
       }
 
@@ -312,14 +305,14 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="bg-[#c653a0] px-5 py-3 flex items-center justify-between">
             <h3 className="font-bold text-white text-sm">
-              Reference 1 — Professional (Early Years Childcare Business)
+              Reference 1 — Professional (Childcare Setting)
             </h3>
             <StatusPill status={profStatus} />
           </div>
 
           <div className="p-5 space-y-4">
             <p className="text-xs text-gray-500">
-              Must be a manager or senior colleague at an Ofsted-registered Early Years Childcare Business.
+              Must be a manager or senior colleague at an Ofsted-registered childcare setting.
               A <strong>work email address</strong> is required — personal email providers are not accepted.
             </p>
 
@@ -387,7 +380,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
                 />
               </Field>
 
-              <Field label="Business name" required error={errors.prof_setting_name}>
+              <Field label="Setting name" required error={errors.prof_setting_name}>
                 <input
                   type="text"
                   value={refs.professional.setting_name}
@@ -454,6 +447,23 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
                 disabled={persStatus === 'submitted'}
               />
             </Field>
+
+            <Field
+              label="Ofsted URN (optional)"
+              error={errors.pers_setting_urn}
+              hint="Only needed if your referee works at an Ofsted-registered setting"
+            >
+              <input
+                type="text"
+                value={refs.personal.setting_urn ?? ''}
+                onChange={(e) =>
+                  setPersField('setting_urn', e.target.value.replace(/\s/g, ''))
+                }
+                placeholder="e.g. 123456"
+                className={inputClass}
+                disabled={persStatus === 'submitted'}
+              />
+            </Field>
           </div>
         </div>
 
@@ -505,24 +515,24 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
       {/* -------------------------------------------------------------------- */}
       {/* Action row                                                            */}
       {/* -------------------------------------------------------------------- */}
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-8 flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={onBack}
           disabled={sending}
-          className="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium disabled:opacity-50 self-start sm:self-auto"
+          className="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium disabled:opacity-50"
         >
           ← Back
         </button>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="flex items-center gap-3">
           {/* Resend button — shown only when all sent/viewed but none submitted */}
           {canResend && (
             <button
               type="button"
               onClick={handleSendLinks}
               disabled={sending}
-              className="w-full sm:w-auto px-5 py-2 border border-[#c653a0] text-[#c653a0] rounded-lg font-medium text-sm hover:bg-pink-50 disabled:opacity-50"
+              className="px-5 py-2 border border-[#c653a0] text-[#c653a0] rounded-lg font-medium text-sm hover:bg-pink-50 disabled:opacity-50"
             >
               {sending ? 'Sending…' : 'Resend links'}
             </button>
@@ -534,7 +544,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
               type="button"
               onClick={handleSendLinks}
               disabled={sending}
-              className="w-full sm:w-auto bg-[#c653a0] text-white py-2 px-6 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="bg-[#c653a0] text-white py-2 px-6 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {sending ? (
                 <span className="flex items-center gap-2">
@@ -555,7 +565,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
             type="button"
             onClick={onNext}
             disabled={sending}
-            className="w-full sm:w-auto bg-gray-800 text-white py-2 px-6 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
+            className="bg-gray-800 text-white py-2 px-6 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
           >
             {allSubmitted ? 'Continue →' : 'Skip for now →'}
           </button>

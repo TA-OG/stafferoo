@@ -1,17 +1,26 @@
 -- Migration: Update drugs_alcohol_declaration to boolean
 -- Changes the field from text to boolean for Yes/No question
 
--- 1. Update the column type in staff_profiles
-alter table staff_profiles
-  alter column drugs_alcohol_declaration type boolean
-  using (drugs_alcohol_declaration is not null and drugs_alcohol_declaration != '');
+-- 1. Update the column type in staff_profiles (idempotent — skip if already boolean)
+do $$ begin
+  if (select data_type from information_schema.columns
+      where table_schema = 'public'
+        and table_name   = 'staff_profiles'
+        and column_name  = 'drugs_alcohol_declaration') <> 'boolean'
+  then
+    alter table staff_profiles
+      alter column drugs_alcohol_declaration type boolean
+      using (drugs_alcohol_declaration is not null and drugs_alcohol_declaration != '');
+  end if;
+end $$;
 
 -- 2. Set default value
 alter table staff_profiles
   alter column drugs_alcohol_declaration set default false;
 
 -- 3. Drop and recreate the upsert_staff_health_safety function with updated signature
-drop function if exists upsert_staff_health_safety;
+drop function if exists upsert_staff_health_safety(uuid, text, text, text, text, text, text, text, text, jsonb, text, text, boolean);
+drop function if exists upsert_staff_health_safety(uuid, text, text, text, text, text, text, text, text, jsonb, text, boolean, boolean);
 
 create or replace function upsert_staff_health_safety(
   p_id                              uuid,

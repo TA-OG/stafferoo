@@ -20,6 +20,7 @@
 drop policy if exists "Users can insert own documents" on staff_documents;
 
 -- New policy: direct uid comparison — no subquery, no auth.users reference.
+drop policy if exists "Staff can insert own documents" on staff_documents;
 create policy "Staff can insert own documents"
   on staff_documents for insert
   with check (auth.uid() = staff_id);

@@ -18,11 +18,21 @@
 
 -- ============================================================================
 -- 1. Backfill file_name → original_filename for any rows where it is null
+--    (idempotent — skip if file_name column no longer exists)
 -- ============================================================================
-update staff_documents
-set original_filename = file_name
-where original_filename is null
-  and file_name is not null;
+do $$ begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name   = 'staff_documents'
+      and column_name  = 'file_name'
+  ) then
+    update staff_documents
+    set original_filename = file_name
+    where original_filename is null
+      and file_name is not null;
+  end if;
+end $$;
 
 -- ============================================================================
 -- 2. Drop the legacy file_name column entirely

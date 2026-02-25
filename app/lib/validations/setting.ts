@@ -1,17 +1,17 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 /**
  * Validation schemas for setting profiles
  */
 
-const ofstedUrnRegex = /^EY\d{6}$/i;
+// Ofsted URN format: EY followed by 6 digits
+const ofstedUrnRegex = /^EY\d{6}$/;
 
 export const settingRegistrationSchema = z.object({
   setting_name: z.string().min(2, 'Business name must be at least 2 characters').max(100),
+  manager_name: z.string().min(2, 'Manager name must be at least 2 characters').max(100).optional(),
   ofsted_urn: z.string().regex(ofstedUrnRegex, 'Ofsted URN must be in format EY123456'),
-  ofsted_rating: z
-    .enum(['Exceptional', 'Strong', 'Expected Standard', 'Needs Attention', 'Urgent Improvement'])
-    .optional(),
+  ofsted_rating: z.enum(['Exceptional', 'Strong', 'Expected Standard', 'Needs Attention', 'Urgent Improvement']).optional(),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(10, 'Phone number must be at least 10 digits').max(15),
   address_line_1: z.string().min(5, 'Address is required'),

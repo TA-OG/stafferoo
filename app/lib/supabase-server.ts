@@ -16,12 +16,22 @@ export async function createSupabaseServerClient() {
     mustEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
     {
       cookies: {
-        getAll() {
-          return cookieStore.getAll();
+        get(name: string) {
+          return cookieStore.get(name)?.value;
         },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: CookieOptions }>) {
-          for (const c of cookiesToSet) {
-            cookieStore.set(c.name, c.value, c.options);
+        set(name: string, value: string, options: CookieOptions) {
+          // set() throws in Server Components — safe to swallow, proxy handles it
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch {
+            // no-op
+          }
+        },
+        remove(name: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value: "", ...options });
+          } catch {
+            // no-op
           }
         },
       },
