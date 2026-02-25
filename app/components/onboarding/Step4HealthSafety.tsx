@@ -410,24 +410,25 @@ export default function Step4HealthSafety({
       </div>
 
       {/* Action row */}
-      <div className="mt-8 flex items-center justify-between gap-3">
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           onClick={onBack}
-          className="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium"
+          className="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium self-start sm:self-auto"
         >
           ← Back
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <SaveProgressButton
             status={saveStatus}
             onClick={() => onSave(formData)}
+            className="justify-center"
           />
           <button
             type="submit"
             disabled={isBlocked}
-            className="bg-[#c653a0] text-white py-2 px-8 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto bg-[#c653a0] text-white py-2 px-8 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continue →
           </button>

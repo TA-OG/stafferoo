@@ -163,12 +163,12 @@ export default function Step5Signature({
       </div>
 
       {/* Action row */}
-      <div className="mt-8 flex items-center justify-between gap-3">
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
-          className="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium disabled:opacity-50"
+          className="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium disabled:opacity-50 self-start sm:self-auto"
         >
           ← Back
         </button>
@@ -176,7 +176,7 @@ export default function Step5Signature({
         <button
           type="submit"
           disabled={isSubmitting || !signature || !agreed || !medicalConsent}
-          className="bg-[#c653a0] text-white py-3 px-8 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto bg-[#c653a0] text-white py-3 px-8 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <span className="flex items-center gap-2">

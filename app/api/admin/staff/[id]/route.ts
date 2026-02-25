@@ -3,7 +3,7 @@ import { createAdminClient } from '@/app/lib/supabase-server';
 import { requireAdmin } from '@/app/lib/admin';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const requestId = crypto.randomUUID();
@@ -17,7 +17,7 @@ export async function GET(
 
     const { data: staff, error: fetchError } = await supabase
       .from('staff_profiles')
-      .select('*, staff_documents(*), staff_verifications(*)')
+      .select('*, staff_documents(*), staff_verifications(*), staff_references(*, reference_requests(*, reference_responses(*)))')
       .eq('id', id)
       .single();
 

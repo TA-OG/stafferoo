@@ -13,12 +13,23 @@
  */
 
 import { useState } from 'react';
+import { supabase } from '@/app/lib/supabase';
 import {
   isFreeEmailDomain,
   extractEmailDomain,
   ProfessionalReferenceInput,
   PersonalReferenceInput,
 } from '@/app/lib/validations/references';
+
+async function getToken(): Promise<string | null> {
+  // Try the cached session first (reads from localStorage, no network call)
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) return session.access_token;
+
+  // Session missing or expired — attempt a token refresh before giving up
+  const { data: refreshData } = await supabase.auth.refreshSession();
+  return refreshData.session?.access_token ?? null;
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -196,9 +207,19 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
 
     setSending(true);
     try {
+      const token = await getToken();
+      if (!token) {
+        // Session fully expired — redirect to auth with return URL
+        window.location.href = '/auth?reason=session_expired&redirectTo=/staff/onboarding';
+        return;
+      }
+
       const resp = await fetch('/api/staff/onboarding/references/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({
           professional: {
             referee_name:     refs.professional.referee_name,
@@ -214,6 +235,11 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
           },
         }),
       });
+
+      if (resp.status === 401) {
+        window.location.href = '/auth?reason=session_expired&redirectTo=/staff/onboarding';
+        return;
+      }
 
       const result = await resp.json();
 
@@ -479,24 +505,24 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
       {/* -------------------------------------------------------------------- */}
       {/* Action row                                                            */}
       {/* -------------------------------------------------------------------- */}
-      <div className="mt-8 flex items-center justify-between gap-3">
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           onClick={onBack}
           disabled={sending}
-          className="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium disabled:opacity-50"
+          className="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium disabled:opacity-50 self-start sm:self-auto"
         >
           ← Back
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {/* Resend button — shown only when all sent/viewed but none submitted */}
           {canResend && (
             <button
               type="button"
               onClick={handleSendLinks}
               disabled={sending}
-              className="px-5 py-2 border border-[#c653a0] text-[#c653a0] rounded-lg font-medium text-sm hover:bg-pink-50 disabled:opacity-50"
+              className="w-full sm:w-auto px-5 py-2 border border-[#c653a0] text-[#c653a0] rounded-lg font-medium text-sm hover:bg-pink-50 disabled:opacity-50"
             >
               {sending ? 'Sending…' : 'Resend links'}
             </button>
@@ -508,7 +534,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
               type="button"
               onClick={handleSendLinks}
               disabled={sending}
-              className="bg-[#c653a0] text-white py-2 px-6 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="w-full sm:w-auto bg-[#c653a0] text-white py-2 px-6 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {sending ? (
                 <span className="flex items-center gap-2">
@@ -529,7 +555,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
             type="button"
             onClick={onNext}
             disabled={sending}
-            className="bg-gray-800 text-white py-2 px-6 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
+            className="w-full sm:w-auto bg-gray-800 text-white py-2 px-6 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
           >
             {allSubmitted ? 'Continue →' : 'Skip for now →'}
           </button>

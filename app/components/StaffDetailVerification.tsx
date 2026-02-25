@@ -24,6 +24,45 @@ interface StaffVerification {
   rejection_reason?: string;
 }
 
+interface ReferenceAnswers {
+  confirmed_name: string;
+  confirmed_position: string;
+  known_applicant_since: string;
+  reliability: 'excellent' | 'good' | 'satisfactory' | 'poor';
+  punctuality: 'excellent' | 'good' | 'satisfactory' | 'poor';
+  safeguarding_concerns: boolean;
+  eligible_for_rehire: boolean;
+  comments?: string;
+}
+
+interface ReferenceResponse {
+  id: string;
+  answers_json: ReferenceAnswers;
+  created_at: string;
+}
+
+interface ReferenceRequest {
+  id: string;
+  sent_at: string;
+  viewed_at: string | null;
+  submitted_at: string | null;
+  expires_at: string;
+  superseded_at: string | null;
+  reference_responses: ReferenceResponse[];
+}
+
+interface StaffReference {
+  id: string;
+  type: 'professional' | 'personal';
+  referee_name: string;
+  referee_position: string | null;
+  referee_email: string;
+  setting_urn: string | null;
+  setting_name: string | null;
+  status: string;
+  reference_requests: ReferenceRequest[];
+}
+
 interface Staff {
   id: string;
   full_name: string;
@@ -58,10 +97,173 @@ interface Staff {
   submitted_at?: string;
   staff_documents?: StaffDocument[];
   staff_verifications?: StaffVerification[];
+  staff_references?: StaffReference[];
 }
 
 interface Props {
   staff: Staff;
+}
+
+const RATING_LABELS: Record<string, { label: string; colour: string }> = {
+  excellent:    { label: 'Excellent',    colour: 'bg-green-100 text-green-800' },
+  good:         { label: 'Good',         colour: 'bg-blue-100 text-blue-800' },
+  satisfactory: { label: 'Satisfactory', colour: 'bg-yellow-100 text-yellow-800' },
+  poor:         { label: 'Poor',         colour: 'bg-red-100 text-red-800' },
+};
+
+const REFERENCE_STATUS_LABELS: Record<string, { label: string; colour: string }> = {
+  draft:     { label: 'Not sent',  colour: 'bg-gray-100 text-gray-600' },
+  sent:      { label: 'Sent',      colour: 'bg-blue-100 text-blue-700' },
+  viewed:    { label: 'Viewed',    colour: 'bg-yellow-100 text-yellow-700' },
+  submitted: { label: 'Submitted', colour: 'bg-green-100 text-green-800' },
+  expired:   { label: 'Expired',   colour: 'bg-red-100 text-red-600' },
+  cancelled: { label: 'Cancelled', colour: 'bg-gray-100 text-gray-500' },
+};
+
+function RatingBadge({ value }: { value: string }) {
+  const cfg = RATING_LABELS[value] ?? { label: value, colour: 'bg-gray-100 text-gray-600' };
+  return (
+    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${cfg.colour}`}>
+      {cfg.label}
+    </span>
+  );
+}
+
+function ReferencePanel({ reference }: { reference: StaffReference }) {
+  // Find the active (non-superseded) request
+  const activeRequest = reference.reference_requests
+    .filter((r) => r.superseded_at === null)
+    .sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime())[0];
+
+  const response = activeRequest?.reference_responses?.[0] ?? null;
+  const answers = response?.answers_json ?? null;
+
+  const statusCfg =
+    REFERENCE_STATUS_LABELS[reference.status] ??
+    { label: reference.status, colour: 'bg-gray-100 text-gray-600' };
+
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
+        <div>
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            {reference.type === 'professional' ? 'Professional reference' : 'Personal reference'}
+          </span>
+          <p className="text-sm font-semibold text-gray-900 mt-0.5">
+            {reference.referee_name}
+            {reference.referee_position && (
+              <span className="font-normal text-gray-500"> — {reference.referee_position}</span>
+            )}
+          </p>
+          <p className="text-xs text-gray-400">{reference.referee_email}</p>
+          {reference.type === 'professional' && reference.setting_name && (
+            <p className="text-xs text-gray-500 mt-0.5">
+              {reference.setting_name}
+              {reference.setting_urn && ` (URN: ${reference.setting_urn})`}
+            </p>
+          )}
+        </div>
+        <span className={`px-3 py-1 rounded text-xs font-semibold ${statusCfg.colour}`}>
+          {statusCfg.label}
+        </span>
+      </div>
+
+      {/* Timeline */}
+      {activeRequest && (
+        <div className="px-4 py-2 border-b border-gray-100 flex gap-6 text-xs text-gray-500">
+          <span>Sent: {fmt(activeRequest.sent_at)}</span>
+          {activeRequest.viewed_at && <span>Viewed: {fmt(activeRequest.viewed_at)}</span>}
+          {activeRequest.submitted_at && <span>Submitted: {fmt(activeRequest.submitted_at)}</span>}
+        </div>
+      )}
+
+      {/* Answers */}
+      {answers ? (
+        <div className="px-4 py-4 space-y-4">
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-xs text-gray-500 mb-0.5">Confirmed name</p>
+              <p className="font-medium text-gray-900">{answers.confirmed_name}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-0.5">Confirmed position</p>
+              <p className="font-medium text-gray-900">{answers.confirmed_position}</p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-xs text-gray-500 mb-0.5">Known applicant since</p>
+              <p className="font-medium text-gray-900">{answers.known_applicant_since}</p>
+            </div>
+          </div>
+
+          <div className="flex gap-6 text-sm">
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Reliability</p>
+              <RatingBadge value={answers.reliability} />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Punctuality</p>
+              <RatingBadge value={answers.punctuality} />
+            </div>
+          </div>
+
+          <div className="flex gap-6 text-sm">
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Safeguarding concerns</p>
+              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${answers.safeguarding_concerns ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                {answers.safeguarding_concerns ? 'YES' : 'No'}
+              </span>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Eligible for rehire</p>
+              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${answers.eligible_for_rehire ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {answers.eligible_for_rehire ? 'Yes' : 'No'}
+              </span>
+            </div>
+          </div>
+
+          {answers.safeguarding_concerns && (
+            <div className="rounded-lg bg-red-50 border border-red-300 p-3">
+              <p className="text-xs font-semibold text-red-800 uppercase tracking-wide mb-1">
+                Safeguarding concern flagged
+              </p>
+              <p className="text-sm text-red-700">
+                {answers.comments
+                  ? answers.comments
+                  : 'The referee indicated a safeguarding concern but provided no additional comments.'}
+              </p>
+            </div>
+          )}
+
+          {answers.comments && !answers.safeguarding_concerns && (
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Additional comments</p>
+              <p className="text-sm text-gray-800 whitespace-pre-wrap">{answers.comments}</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="px-4 py-4">
+          <p className="text-sm text-gray-400 italic">
+            {reference.status === 'draft'
+              ? 'Reference request has not been sent yet.'
+              : reference.status === 'expired'
+              ? 'Reference link expired before the referee responded.'
+              : 'Awaiting referee response.'}
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function StaffDetailVerification({ staff }: Props) {
@@ -127,12 +329,22 @@ export default function StaffDetailVerification({ staff }: Props) {
   };
 
   const requiredDocs = [
-    { type: 'dbs_certificate', label: 'DBS Certificate' },
+    { type: 'dbs_certificate',        label: 'DBS Certificate' },
     { type: 'safeguarding_certificate', label: 'Safeguarding' },
-    { type: 'paediatric_first_aid', label: 'First Aid' },
-    { type: 'right_to_work', label: 'Right to Work' },
+    { type: 'paediatric_first_aid',    label: 'First Aid' },
+    { type: 'right_to_work',           label: 'Right to Work' },
     { type: 'qualification_certificate', label: 'Qualification' },
   ];
+
+  const references = (staff.staff_references ?? []).sort((a, b) =>
+    a.type === 'professional' ? -1 : b.type === 'professional' ? 1 : 0
+  );
+
+  const hasSafeguardingFlag = references.some((ref) =>
+    ref.reference_requests.some((req) =>
+      req.reference_responses.some((res) => res.answers_json?.safeguarding_concerns === true)
+    )
+  );
 
   return (
     <div className="space-y-6">
@@ -281,6 +493,28 @@ export default function StaffDetailVerification({ staff }: Props) {
             </div>
           </div>
         )}
+
+        {/* References */}
+        <div className="border-t border-gray-200 pt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <h3 className="text-sm font-semibold text-gray-700">References</h3>
+            {hasSafeguardingFlag && (
+              <span className="px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-800 uppercase tracking-wide">
+                Safeguarding concern
+              </span>
+            )}
+          </div>
+
+          {references.length === 0 ? (
+            <p className="text-sm text-gray-400 italic">No references submitted yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {references.map((ref) => (
+                <ReferencePanel key={ref.id} reference={ref} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-lg p-8">
@@ -312,10 +546,7 @@ export default function StaffDetailVerification({ staff }: Props) {
                 {isProcessing ? 'Processing...' : 'Confirm Verification'}
               </button>
               <button
-                onClick={() => {
-                  setAction(null);
-                  setReason('');
-                }}
+                onClick={() => { setAction(null); setReason(''); }}
                 disabled={isProcessing}
                 className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
               >
@@ -332,10 +563,7 @@ export default function StaffDetailVerification({ staff }: Props) {
                 {isProcessing ? 'Processing...' : 'Confirm Rejection'}
               </button>
               <button
-                onClick={() => {
-                  setAction(null);
-                  setReason('');
-                }}
+                onClick={() => { setAction(null); setReason(''); }}
                 disabled={isProcessing}
                 className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
               >
@@ -352,10 +580,7 @@ export default function StaffDetailVerification({ staff }: Props) {
                 {isProcessing ? 'Processing...' : 'Request Changes'}
               </button>
               <button
-                onClick={() => {
-                  setAction(null);
-                  setReason('');
-                }}
+                onClick={() => { setAction(null); setReason(''); }}
                 disabled={isProcessing}
                 className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
               >

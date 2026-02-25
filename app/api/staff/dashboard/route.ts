@@ -1,22 +1,19 @@
-import { NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/app/lib/supabase-server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthFromRequest } from '@/app/lib/auth';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const requestId = crypto.randomUUID();
 
   try {
-    const supabase = await createSupabaseServerClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const auth = getAuthFromRequest(req);
+    if (!auth.ok) {
       return NextResponse.json(
         { ok: false, error: { code: 'UNAUTHORIZED', message: 'You must be signed in', requestId } },
         { status: 401 }
       );
     }
+
+    const { user, supabase } = auth;
 
     const [profileResult, verificationResult, prefsResult, unavailabilityResult] =
       await Promise.all([

@@ -1,116 +1,121 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/app/lib/supabase-server';
+import { z } from 'zod';
 import { requireAdmin } from '@/app/lib/admin';
-import { settingVerificationSchema } from '@/app/lib/validations/setting';
+import { createAdminClient } from '@/app/lib/supabase-server';
+
+const verifySchema = z.object({
+  setting_id: z.string().uuid('Invalid setting ID'),
+  action: z.enum(['approve', 'reject']),
+  notes: z.string().optional(),
+});
+
+function jsonError(status: number, code: string, message: string, requestId: string) {
+  return NextResponse.json(
+    { ok: false, error: { code, message, requestId } },
+    { status }
+  );
+}
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+
   try {
-    // Require admin access
-    const admin = await requireAdmin();
+    const adminUser = await requireAdmin();
 
-    // Parse and validate request body
-    const body = await request.json();
-    const validated = settingVerificationSchema.parse(body);
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return jsonError(400, 'BAD_REQUEST', 'Invalid JSON', requestId);
+    }
 
-    // Create Supabase client
-    const supabase = await createClient();
+    const parsed = verifySchema.safeParse(body);
+    if (!parsed.success) {
+      return jsonError(400, 'VALIDATION_ERROR', 'Invalid request body', requestId);
+    }
 
-    // Get the setting
+    const { setting_id, action, notes } = parsed.data;
+    const supabase = createAdminClient();
+
     const { data: setting, error: fetchError } = await supabase
       .from('setting_profiles')
-      .select('*')
-      .eq('id', validated.setting_id)
+      .select('setting_name, email, ofsted_urn, verification_status')
+      .eq('id', setting_id)
       .single();
 
     if (fetchError || !setting) {
-      return NextResponse.json(
-        { error: 'Setting not found' },
-        { status: 404 }
-      );
+      return jsonError(404, 'NOT_FOUND', 'Setting not found', requestId);
     }
 
     if (setting.verification_status !== 'pending') {
-      return NextResponse.json(
-        { error: 'Setting has already been processed' },
-        { status: 400 }
-      );
+      return jsonError(400, 'INVALID_STATE', `Cannot ${action}: current status is ${setting.verification_status}`, requestId);
     }
 
-    // Update verification status
-    const newStatus = validated.action === 'approve' ? 'approved' : 'rejected';
-    
+    const newStatus = action === 'approve' ? 'approved' : 'rejected';
+
     const { error: updateError } = await supabase
       .from('setting_profiles')
       .update({
         verification_status: newStatus,
-        verified_by: admin.id,
+        verified_by: adminUser.id,
         verified_at: new Date().toISOString(),
-        verification_notes: validated.notes || null,
-        updated_at: new Date().toISOString(),
+        verification_notes: notes ?? null,
       })
-      .eq('id', validated.setting_id);
+      .eq('id', setting_id);
 
     if (updateError) {
-      console.error('Update error:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to update setting' },
-        { status: 500 }
-      );
+      console.error('[POST /api/admin/settings/verify]', {
+        event: 'admin.setting.verify.update_failed',
+        requestId,
+        settingId: setting_id,
+        action,
+        error: updateError,
+      });
+      return jsonError(500, 'UPDATE_FAILED', 'Failed to update setting', requestId);
     }
 
-    // Create audit log entry
     const { error: auditError } = await supabase
       .from('audit_logs')
       .insert({
-        actor_user_id: admin.id,
-        action: validated.action === 'approve' ? 'setting_approved' : 'setting_rejected',
+        actor_user_id: adminUser.id,
+        action: action === 'approve' ? 'setting_approved' : 'setting_rejected',
         entity_type: 'setting_profile',
-        entity_id: validated.setting_id,
+        entity_id: setting_id,
         metadata: {
           setting_name: setting.setting_name,
           ofsted_urn: setting.ofsted_urn,
-          notes: validated.notes,
-          admin_email: admin.email,
+          notes,
+          admin_email: adminUser.email,
         },
       });
 
     if (auditError) {
-      console.error('Audit log error:', auditError);
-      // Don't fail the request if audit log fails
+      console.error('[POST /api/admin/settings/verify]', {
+        event: 'admin.setting.verify.audit_failed',
+        requestId,
+        settingId: setting_id,
+        error: auditError,
+      });
     }
 
-    return NextResponse.json({
-      success: true,
-      status: newStatus,
+    console.log('[POST /api/admin/settings/verify]', {
+      event: `admin.setting.${action}d`,
+      requestId,
+      settingId: setting_id,
+      adminId: adminUser.id,
+      newStatus,
     });
+
+    return NextResponse.json({ ok: true, data: { settingId: setting_id, status: newStatus } });
+
   } catch (error: unknown) {
-    console.error('Verification error:', error);
-
-    if (error instanceof Error) {
-      if (error.message === 'Unauthorized' || error.message.includes('Forbidden')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 403 }
-        );
-      }
-
-      return NextResponse.json(
-        { error: error.message || 'Verification failed' },
-        { status: 500 }
-      );
+    if (error instanceof Error && error.message.includes('Forbidden')) {
+      return jsonError(403, 'FORBIDDEN', 'Admin access required', requestId);
     }
-
-    if (typeof error === 'object' && error !== null && 'errors' in error) {
-      // Zod validation error
-      return NextResponse.json(
-        { error: 'Validation failed', details: (error as { errors: unknown }).errors },
-        { status: 400 }
-      );
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return jsonError(401, 'UNAUTHORIZED', 'You must be signed in', requestId);
     }
-
-    return NextResponse.json(
-      { error: 'Verification failed' },
-      { status: 500 }
-    );
+    console.error('[POST /api/admin/settings/verify]', { requestId, error });
+    return jsonError(500, 'INTERNAL_ERROR', 'An unexpected error occurred', requestId);
   }
 }
