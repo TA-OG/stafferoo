@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/app/lib/supabase';
+import NotificationBell from './NotificationBell';
 
 // ── Breadcrumb types ──────────────────────────────────────────────────────────
 
@@ -128,6 +129,7 @@ export default function PageHeader() {
       {/* Login status */}
       {email && (
         <div className="flex items-center gap-3 shrink-0 ml-4">
+          <NotificationBell />
           <span className="text-xs text-gray-500 hidden sm:block truncate max-w-[220px]">
             {email}
           </span>
