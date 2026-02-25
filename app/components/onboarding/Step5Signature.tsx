@@ -94,7 +94,7 @@ export default function Step5Signature({
               </li>
               <li>
                 I understand that Stafferoo may share relevant information with Ofsted-registered
-                settings and other regulatory bodies where required by law or safeguarding
+                Early Years Childcare Businesses and other regulatory bodies where required by law or safeguarding
                 obligations.
               </li>
             </ul>

@@ -12,7 +12,7 @@ export default function SettingsPending() {
             Registration Submitted
           </h1>
           <p className="text-gray-600 mb-6">
-            Thank you for registering your childcare setting. Your application is currently under review by our admin team.
+            Thank you for registering your Early Years Childcare Business. Your application is currently under review by our admin team.
           </p>
           
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
@@ -26,7 +26,7 @@ export default function SettingsPending() {
               </li>
               <li className="flex items-start">
                 <span className="text-blue-600 mr-2">2.</span>
-                We will review your setting details
+                We will review your business details
               </li>
               <li className="flex items-start">
                 <span className="text-blue-600 mr-2">3.</span>

@@ -186,7 +186,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
     else if (!/^\d{6,9}$|^EY\d{6,9}$/i.test(p.setting_urn))
       errs.prof_setting_urn = 'URN should be 6–9 digits, or start with EY';
     if (!p.setting_name.trim())
-      errs.prof_setting_name = 'Setting name is required';
+      errs.prof_setting_name = 'Business name is required';
 
     if (!q.referee_name.trim())
       errs.pers_referee_name = 'Full name is required';
@@ -312,14 +312,14 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="bg-[#c653a0] px-5 py-3 flex items-center justify-between">
             <h3 className="font-bold text-white text-sm">
-              Reference 1 — Professional (Childcare Setting)
+              Reference 1 — Professional (Early Years Childcare Business)
             </h3>
             <StatusPill status={profStatus} />
           </div>
 
           <div className="p-5 space-y-4">
             <p className="text-xs text-gray-500">
-              Must be a manager or senior colleague at an Ofsted-registered childcare setting.
+              Must be a manager or senior colleague at an Ofsted-registered Early Years Childcare Business.
               A <strong>work email address</strong> is required — personal email providers are not accepted.
             </p>
 
@@ -387,7 +387,7 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
                 />
               </Field>
 
-              <Field label="Setting name" required error={errors.prof_setting_name}>
+              <Field label="Business name" required error={errors.prof_setting_name}>
                 <input
                   type="text"
                   value={refs.professional.setting_name}

@@ -67,13 +67,13 @@ export default async function AdminPostcodesPage({
             Postcode Density
           </h1>
           <p className="text-gray-600">
-            Approved staff and settings by postcode. Enable or disable postcode access for settings registration.
+            Approved staff and businesses by postcode. Enable or disable postcode access for business registration.
           </p>
         </div>
 
         {sorted.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-8 text-center">
-            <p className="text-gray-500">No postcode data yet — staff and settings will appear here once approved.</p>
+            <p className="text-gray-500">No postcode data yet — staff and businesses will appear here once approved.</p>
           </div>
         ) : (
           <PostcodeDensityTable

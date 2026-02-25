@@ -2,6 +2,39 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function HomePage() {
+  const tiles: Tile[] = [
+    {
+      title: "Sign in",
+      description: "Access your account and continue where you left off.",
+      href: "/auth",
+      badge: "Auth",
+    },
+    {
+      title: "Staff onboarding",
+      description: "Complete your profile, upload documents, submit for review.",
+      href: "/staff/onboarding",
+      badge: "Staff",
+    },
+    {
+      title: "My dashboard",
+      description: "Check your status, manage availability and notification preferences.",
+      href: "/staff/dashboard",
+      badge: "Staff",
+    },
+    {
+      title: "Register your business",
+      description: "Register your Early Years Childcare Business and start booking staff.",
+      href: "/settings/register",
+      badge: "Business",
+    },
+    {
+      title: "Admin Dashboard",
+      description: "Platform overview, verification queues, and postcode density.",
+      href: "/admin",
+      badge: "Admin",
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-[#f8f0f5] flex flex-col">
       {/* Hero */}

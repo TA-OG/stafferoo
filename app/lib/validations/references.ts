@@ -95,7 +95,7 @@ export const professionalReferenceSchema = z.object({
     .min(1, 'Ofsted URN is required for a professional reference')
     .max(20)
     .regex(/^\d{6,9}$|^EY\d{6,9}$/i, 'URN should be a 6-9 digit number or start with EY'),
-  setting_name:     z.string().min(2, 'Setting name is required').max(200),
+  setting_name:     z.string().min(2, 'Business name is required').max(200),
 });
 
 export type ProfessionalReferenceInput = z.infer<typeof professionalReferenceSchema>;
