@@ -536,6 +536,29 @@ export default function StaffDashboard() {
           />
         </div>
 
+        {/* My Applications link for verified staff */}
+        {verif.status === 'verified' && (
+          <Link
+            href="/staff/applications"
+            className="block bg-white rounded-xl border border-[rgba(180,156,220,0.42)] p-5 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-[#bf5d9f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="font-bold text-gray-900 text-sm">My Applications</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">Track your job applications</p>
+                </div>
+              </div>
+              <span className="text-[#bf5d9f]">→</span>
+            </div>
+          </Link>
+        )}
+
         {/* Browse Jobs CTA for verified staff */}
         {verif.status === 'verified' && (
           <div className="bg-white rounded-xl border border-[rgba(180,156,220,0.42)] p-5">
