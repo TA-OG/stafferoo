@@ -128,50 +128,66 @@ export async function POST(request: NextRequest) {
     }
 
     // -------------------------------------------------------------------------
-    // 3. Enqueue email jobs via admin client (jobs table is service-role only)
+    // 3. Enqueue email jobs — non-blocking: a queue failure must NOT prevent
+    //    the response. The reference records and tokens are already committed.
+    //    The worker will pick up any jobs that land; if the jobs table is
+    //    unavailable the links are still valid and can be shared manually.
     // -------------------------------------------------------------------------
-    const adminDb = createAdminClient();
-    const applicantName = user.email; // Will be overridden with full_name at worker time
+    let emailsQueued = true;
+    try {
+      const adminDb = createAdminClient();
+      const applicantName = user.email; // overridden with full_name at worker time
 
-    // Derive first name from referee name for the greeting
-    const profFirstName = professional.referee_name.split(' ')[0];
-    const persFirstName = personal.referee_name.split(' ')[0];
+      const profFirstName = professional.referee_name.split(' ')[0];
+      const persFirstName = personal.referee_name.split(' ')[0];
 
-    await enqueueJob(adminDb, {
-      type: 'reference_request_email',
-      data: {
-        referenceRequestId: profRefId,
-        applicantName,
-        refereeFirstName:   profFirstName,
-        refereeName:        professional.referee_name,
-        refereeEmail:       professional.referee_email,
-        referenceLink:      profLink,
-        expiresAt:          expiresAt.toISOString(),
-      },
-    });
+      await enqueueJob(adminDb, {
+        type: 'reference_request_email',
+        data: {
+          referenceRequestId: profRefId,
+          applicantName,
+          refereeFirstName:   profFirstName,
+          refereeName:        professional.referee_name,
+          refereeEmail:       professional.referee_email,
+          referenceLink:      profLink,
+          expiresAt:          expiresAt.toISOString(),
+        },
+      });
 
-    await enqueueJob(adminDb, {
-      type: 'reference_request_email',
-      data: {
-        referenceRequestId: persRefId,
-        applicantName,
-        refereeFirstName:   persFirstName,
-        refereeName:        personal.referee_name,
-        refereeEmail:       personal.referee_email,
-        referenceLink:      persLink,
-        expiresAt:          expiresAt.toISOString(),
-      },
-    });
+      await enqueueJob(adminDb, {
+        type: 'reference_request_email',
+        data: {
+          referenceRequestId: persRefId,
+          applicantName,
+          refereeFirstName:   persFirstName,
+          refereeName:        personal.referee_name,
+          refereeEmail:       personal.referee_email,
+          referenceLink:      persLink,
+          expiresAt:          expiresAt.toISOString(),
+        },
+      });
+    } catch (queueErr) {
+      emailsQueued = false;
+      console.error('[references/send] email queue failed — references saved, emails will not auto-send', {
+        event:    'references.email_queue_failed',
+        requestId,
+        userId:   user.id,
+        profRefId,
+        persRefId,
+        error:    queueErr,
+      });
+    }
 
     // -------------------------------------------------------------------------
     // 4. Audit log
     // -------------------------------------------------------------------------
     console.log('[references/send] links_sent', {
-      event:  'references.links_sent',
+      event:       'references.links_sent',
       requestId,
-      userId: user.id,
+      userId:      user.id,
       profRefId,
       persRefId,
+      emailsQueued,
     });
 
     return NextResponse.json({
@@ -180,6 +196,7 @@ export async function POST(request: NextRequest) {
         professional: { reference_id: profRefId, status: 'sent' },
         personal:     { reference_id: persRefId, status: 'sent' },
         expires_at:   expiresAt.toISOString(),
+        emails_queued: emailsQueued,
       },
     });
 

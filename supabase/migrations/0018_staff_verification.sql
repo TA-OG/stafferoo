@@ -40,10 +40,12 @@ create index if not exists idx_staff_profiles_verified_at on staff_profiles(veri
 -- TRIGGERS
 -- ============================================================================
 
+drop trigger if exists update_staff_verifications_updated_at on staff_verifications;
+
 create trigger update_staff_verifications_updated_at
   before update on staff_verifications
   for each row
-  execute function update_updated_at_column();
+  execute function update_staff_verifications_updated_at();
 
 -- ============================================================================
 -- COMMENTS
