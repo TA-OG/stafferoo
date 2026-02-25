@@ -16,7 +16,7 @@ export default async function AdminStaffDetail({ params }: { params: Promise<{ i
   
   const { data: staff, error } = await supabase
     .from('staff_profiles')
-    .select('*, staff_documents(*), staff_verifications(*)')
+    .select('*, staff_documents(*), staff_verifications(*), staff_references(*, reference_requests(*, reference_responses(*)))')
     .eq('id', id)
     .single();
 

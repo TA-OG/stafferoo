@@ -40,7 +40,7 @@ export default function Step2ProfileBasics({
     years_experience:             initialData?.years_experience ?? 0,
     qualification_level:          initialData?.qualification_level ?? 'level_2',
     qualification_name:           initialData?.qualification_name ?? '',
-    criminal_conviction_declared: initialData?.criminal_conviction_declared ?? false,
+    criminal_conviction_declared: initialData?.criminal_conviction_declared,
     criminal_conviction_details:  initialData?.criminal_conviction_details ?? '',
   });
 
@@ -57,6 +57,16 @@ export default function Step2ProfileBasics({
 
     if (!formData.qualification_name?.trim()) {
       setFormError('Please enter the name of your qualification before continuing.');
+      return;
+    }
+
+    if (formData.criminal_conviction_declared === undefined) {
+      setFormError('Please answer the criminal convictions question before continuing.');
+      return;
+    }
+
+    if (formData.criminal_conviction_declared && !formData.criminal_conviction_details?.trim()) {
+      setFormError('Please provide details of your convictions before continuing.');
       return;
     }
 
@@ -308,24 +318,41 @@ export default function Step2ProfileBasics({
         </div>
 
         {/* Criminal conviction declaration */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm font-semibold text-gray-800 mb-3">Criminal Convictions *</p>
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.criminal_conviction_declared}
-              onChange={(e) =>
-                setFormData({ ...formData, criminal_conviction_declared: e.target.checked })
-              }
-              className="mt-1 shrink-0"
-            />
-            <span className="text-sm text-gray-700">
-              I declare that I have spent or unspent criminal convictions that I need to disclose.
-              If you have nothing to declare, leave this unchecked.
-            </span>
-          </label>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-5">
+          <p className="text-sm font-semibold text-gray-800 mb-1">Criminal Convictions *</p>
+          <p className="text-xs text-gray-600 mb-4">
+            Do you have any spent or unspent criminal convictions, cautions, reprimands, or final
+            warnings that you are required to disclose?
+          </p>
 
-          {formData.criminal_conviction_declared && (
+          <div className="flex items-center gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="criminal_conviction_declared"
+                checked={formData.criminal_conviction_declared === false}
+                onChange={() =>
+                  setFormData({ ...formData, criminal_conviction_declared: false, criminal_conviction_details: '' })
+                }
+                className="shrink-0"
+              />
+              <span className="text-sm font-medium text-gray-700">No</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="criminal_conviction_declared"
+                checked={formData.criminal_conviction_declared === true}
+                onChange={() =>
+                  setFormData({ ...formData, criminal_conviction_declared: true })
+                }
+                className="shrink-0"
+              />
+              <span className="text-sm font-medium text-gray-700">Yes</span>
+            </label>
+          </div>
+
+          {formData.criminal_conviction_declared === true && (
             <div className="mt-4 space-y-2">
               <p className="text-xs text-gray-600">
                 Please provide details including offence type and dates. All disclosures are treated
@@ -343,7 +370,6 @@ export default function Step2ProfileBasics({
                   rows={4}
                   placeholder="Please include offence type, date(s), and any relevant context"
                   className={inputClass}
-                  required={formData.criminal_conviction_declared}
                 />
               </div>
             </div>
@@ -353,24 +379,25 @@ export default function Step2ProfileBasics({
       </div>
 
       {/* Action row */}
-      <div className="mt-8 flex items-center justify-between gap-3">
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           onClick={onBack}
-          className="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium"
+          className="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium self-start sm:self-auto"
         >
           ← Back
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <SaveProgressButton
             status={saveStatus}
             onClick={() => onSave(formData)}
+            className="justify-center"
           />
           <button
             type="submit"
             disabled={isUnqualified}
-            className="bg-[#c653a0] text-white py-2 px-8 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto bg-[#c653a0] text-white py-2 px-8 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continue →
           </button>
