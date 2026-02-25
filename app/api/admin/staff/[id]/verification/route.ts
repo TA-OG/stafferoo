@@ -82,6 +82,9 @@ export async function POST(
       .from('staff_profiles')
       .update({
         verification_status: newProfileStatus,
+        verified_by: admin.id,
+        verified_at: new Date().toISOString(),
+        verification_notes: validated.action === 'reject' ? validated.reason : null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', staffId);
