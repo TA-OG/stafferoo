@@ -44,17 +44,17 @@ function AuthForm() {
         // Otherwise route by role so the user lands on their dashboard, not the homepage.
         if (redirectTo !== '/') {
           router.push(redirectTo);
-        } else {
-          const userRole = data.user.user_metadata?.role as string | undefined;
-          if (userRole === 'staff') {
-            router.push('/staff/dashboard');
-          } else if (userRole === 'setting') {
-            router.push('/settings/dashboard');
-          } else {
-            router.push('/');
-          }
+          return;
         }
-        router.refresh();
+        const userRole = data.user.user_metadata?.role as string | undefined;
+        if (userRole === 'staff') {
+          router.push('/staff/dashboard');
+        } else if (userRole === 'setting') {
+          router.push('/settings/dashboard');
+        } else {
+          // No role set — likely an admin account; the admin page enforces its own access check.
+          router.push('/admin');
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sign in failed');
