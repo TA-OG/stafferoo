@@ -3,7 +3,7 @@
  * List available jobs for staff to browse
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getAuthFromRequest } from '@/app/lib/auth';
 import { createApiRoute, rateLimits } from '@/app/lib/api-wrapper';
 import { jobRoleLabels } from '@/app/lib/validations/jobs';

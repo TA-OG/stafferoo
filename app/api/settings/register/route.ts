@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getAuthFromRequest } from '@/app/lib/auth';
 import { settingRegistrationSchema } from '@/app/lib/validations/setting';
 import { createApiRoute, rateLimits } from '@/app/lib/api-wrapper';

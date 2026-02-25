@@ -6,7 +6,7 @@
  * For now, users use standard email/password auth
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createApiRoute, rateLimits } from '@/app/lib/api-wrapper';
 
 export const POST = createApiRoute(async (_request, requestId) => {
