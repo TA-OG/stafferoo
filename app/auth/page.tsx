@@ -40,7 +40,20 @@ function AuthForm() {
       }
 
       if (data.user) {
-        router.push(redirectTo);
+        // If a specific redirectTo was given (e.g. from a protected page), honour it.
+        // Otherwise route by role so the user lands on their dashboard, not the homepage.
+        if (redirectTo !== '/') {
+          router.push(redirectTo);
+        } else {
+          const userRole = data.user.user_metadata?.role as string | undefined;
+          if (userRole === 'staff') {
+            router.push('/staff/dashboard');
+          } else if (userRole === 'setting') {
+            router.push('/settings/dashboard');
+          } else {
+            router.push('/');
+          }
+        }
         router.refresh();
       }
     } catch (err) {
