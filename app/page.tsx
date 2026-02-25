@@ -36,15 +36,9 @@ export default function HomePage() {
       badge: "Settings",
     },
     {
-      title: "Admin, Staff",
-      description: "Review staff profiles and set verification status.",
-      href: "/admin/staff",
-      badge: "Admin",
-    },
-    {
-      title: "Admin, Settings",
-      description: "Verify settings and manage postcode gating.",
-      href: "/admin/settings",
+      title: "Admin Dashboard",
+      description: "Platform overview, verification queues, and postcode density.",
+      href: "/admin",
       badge: "Admin",
     },
   ];
