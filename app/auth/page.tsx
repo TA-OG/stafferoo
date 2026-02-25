@@ -87,7 +87,12 @@ function AuthForm() {
       });
 
       if (signUpError) {
-        setError(signUpError.message);
+        const msg = signUpError.message.toLowerCase();
+        if (msg.includes('rate limit') || msg.includes('email rate')) {
+          setError('Too many sign-up attempts. Please wait a few minutes and try again.');
+        } else {
+          setError(signUpError.message);
+        }
         setLoading(false);
         return;
       }
