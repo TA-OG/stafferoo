@@ -22,8 +22,13 @@ import {
 } from '@/app/lib/validations/references';
 
 async function getToken(): Promise<string | null> {
+  // Try the cached session first (reads from localStorage, no network call)
   const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token ?? null;
+  if (session?.access_token) return session.access_token;
+
+  // Session missing or expired — attempt a token refresh before giving up
+  const { data: refreshData } = await supabase.auth.refreshSession();
+  return refreshData.session?.access_token ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -204,8 +209,8 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
     try {
       const token = await getToken();
       if (!token) {
-        setApiError('Session expired — please sign in again.');
-        setSending(false);
+        // Session fully expired — redirect to auth with return URL
+        window.location.href = '/auth?reason=session_expired&redirectTo=/staff/onboarding';
         return;
       }
 
@@ -230,6 +235,11 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
           },
         }),
       });
+
+      if (resp.status === 401) {
+        window.location.href = '/auth?reason=session_expired&redirectTo=/staff/onboarding';
+        return;
+      }
 
       const result = await resp.json();
 
