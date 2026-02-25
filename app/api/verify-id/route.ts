@@ -1,57 +1,59 @@
 /**
  * API Route: POST /api/verify-id
- * 
+ *
  * Handles ID verification requests from the frontend.
  * Accepts document images and returns verification results.
+ * Requires a valid Bearer JWT — staff_id is taken from the token, not the request body.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthFromRequest } from '@/app/lib/auth';
 import { verifyIDDocument, extractVerificationData } from '@/app/lib/didit';
-import { supabase } from '@/app/lib/supabase';
+import { createAdminClient } from '@/app/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+
+  const auth = getAuthFromRequest(request);
+  if (!auth.ok) {
+    return NextResponse.json(
+      { ok: false, error: { code: 'UNAUTHORIZED', message: 'You must be signed in', requestId } },
+      { status: 401 }
+    );
+  }
+
+  const staffId = auth.user.id;
+
   try {
-    // Parse multipart form data
     const formData = await request.formData();
-    
+
     const frontImage = formData.get('front_image') as File;
     const backImage = formData.get('back_image') as File | null;
-    const staffId = formData.get('staff_id') as string;
     const minimumAge = formData.get('minimum_age') as string | null;
 
-    // Validate required fields
     if (!frontImage) {
       return NextResponse.json(
-        { error: 'Front image is required' },
+        { ok: false, error: { code: 'BAD_REQUEST', message: 'Front image is required', requestId } },
         { status: 400 }
       );
     }
 
-    if (!staffId) {
-      return NextResponse.json(
-        { error: 'Staff ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // Verify ID document with Didit
     const verificationResponse = await verifyIDDocument({
       frontImage,
       backImage: backImage || undefined,
-      performDocumentLiveness: true, // Enable liveness detection
-      minimumAge: minimumAge ? parseInt(minimumAge) : 18, // Default 18
-      vendorData: staffId, // Track by staff ID
+      performDocumentLiveness: true,
+      minimumAge: minimumAge ? parseInt(minimumAge) : 18,
+      vendorData: staffId,
       expirationDateNotDetectedAction: 'DECLINE',
       invalidMrzAction: 'DECLINE',
       inconsistentDataAction: 'DECLINE',
       preferredCharacters: 'latin',
-      saveApiRequest: true, // Save for manual review if needed
+      saveApiRequest: true,
     });
 
-    // Extract simplified data
     const verificationData = extractVerificationData(verificationResponse);
+    const supabase = createAdminClient();
 
-    // Store verification result in id_verifications table
     const { error: verificationError } = await supabase
       .from('id_verifications')
       .insert({
@@ -63,39 +65,36 @@ export async function POST(request: NextRequest) {
       });
 
     if (verificationError) {
-      console.error('Database insert error:', verificationError);
-      throw new Error('Failed to save verification result');
+      console.error('[POST /api/verify-id] insert failed', { requestId, staffId, error: verificationError });
+      return NextResponse.json(
+        { ok: false, error: { code: 'DB_ERROR', message: 'Failed to save verification result', requestId } },
+        { status: 500 }
+      );
     }
 
-    // Update staff profile with verified name if approved
     if (verificationData.status === 'Approved') {
       const { error: profileError } = await supabase
         .from('staff_profiles')
-        .update({
-          full_name: verificationData.fullName,
-        })
+        .update({ full_name: verificationData.fullName })
         .eq('id', staffId);
 
       if (profileError) {
-        console.error('Profile update error:', profileError);
+        console.error('[POST /api/verify-id] profile update failed', { requestId, staffId, error: profileError });
       }
     }
 
-    // Return verification result
     return NextResponse.json({
-      success: true,
-      verification: verificationData,
-      request_id: verificationResponse.request_id,
+      ok: true,
+      data: {
+        verification: verificationData,
+        request_id: verificationResponse.request_id,
+      },
     });
 
-  } catch (error) {
-    console.error('ID verification error:', error);
-    
+  } catch (error: unknown) {
+    console.error('[POST /api/verify-id]', { requestId, staffId, error });
     return NextResponse.json(
-      {
-        error: 'ID verification failed',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
+      { ok: false, error: { code: 'INTERNAL_ERROR', message: 'ID verification failed', requestId } },
       { status: 500 }
     );
   }

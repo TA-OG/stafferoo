@@ -1,6 +1,7 @@
-import { createClient } from '@/app/lib/supabase-server';
-import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { requireAdmin } from '@/app/lib/admin';
+import { createAdminClient } from '@/app/lib/supabase-server';
 
 const approveSchema = z.object({
   staffId: z.string().uuid('Invalid staff ID'),
@@ -8,109 +9,110 @@ const approveSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+
   try {
-    // Parse request body
-    const body = await request.json();
-    const { staffId, notes } = approveSchema.parse(body);
+    const adminUser = await requireAdmin();
 
-    // Get authenticated user and verify admin role
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+        { ok: false, error: { code: 'BAD_REQUEST', message: 'Invalid JSON', requestId } },
+        { status: 400 }
       );
     }
 
-    // Verify user is admin
-    const isAdmin = user.user_metadata?.role === 'admin';
-    if (!isAdmin) {
+    const parsed = approveSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Only admins can approve staff' },
-        { status: 403 }
+        { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid request', requestId } },
+        { status: 400 }
       );
     }
 
-    // Get current staff profile to verify it exists and is pending
+    const { staffId, notes } = parsed.data;
+    const supabase = createAdminClient();
+
     const { data: staff, error: staffError } = await supabase
       .from('staff_profiles')
-      .select('*')
+      .select('full_name, email, verification_status')
       .eq('id', staffId)
       .single();
 
     if (staffError || !staff) {
       return NextResponse.json(
-        { error: 'Staff member not found' },
+        { ok: false, error: { code: 'NOT_FOUND', message: 'Staff member not found', requestId } },
         { status: 404 }
       );
     }
 
     if (staff.verification_status !== 'pending') {
       return NextResponse.json(
-        { error: `Staff verification status is ${staff.verification_status}, cannot approve` },
+        {
+          ok: false,
+          error: {
+            code: 'INVALID_STATE',
+            message: `Cannot approve: current status is ${staff.verification_status}`,
+            requestId,
+          },
+        },
         { status: 400 }
       );
     }
 
-    // Update staff profile with approval
     const { error: updateError } = await supabase
       .from('staff_profiles')
       .update({
         verification_status: 'approved',
-        verified_by: user.id,
+        verified_by: adminUser.id,
         verified_at: new Date().toISOString(),
-        verification_notes: notes || null,
+        verification_notes: notes ?? null,
       })
       .eq('id', staffId);
 
     if (updateError) {
+      console.error('[POST /api/admin/staff/approve] update failed', { requestId, error: updateError });
       return NextResponse.json(
-        { error: 'Failed to approve staff', details: updateError.message },
+        { ok: false, error: { code: 'UPDATE_FAILED', message: 'Failed to approve staff', requestId } },
         { status: 500 }
       );
     }
 
-    // Log audit event
     const { error: auditError } = await supabase
       .from('audit_logs')
       .insert({
-        actor_user_id: user.id,
+        actor_user_id: adminUser.id,
         action: 'approve',
         entity_type: 'staff_profile',
         entity_id: staffId,
-        metadata: {
-          notes,
-          staff_name: staff.full_name,
-          staff_email: staff.email,
-        },
+        metadata: { notes, staff_name: staff.full_name, staff_email: staff.email },
       });
 
     if (auditError) {
-      console.error('Audit log failed:', auditError);
-      // Don't fail the request if audit logging fails, but log it
+      console.error('[POST /api/admin/staff/approve] audit log failed', { requestId, error: auditError });
     }
 
-    // TODO: Send email notification to staff member notifying them of approval
-    // This would be done via a background job or Resend integration
+    return NextResponse.json({ ok: true, data: { staffId } });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Staff member approved successfully',
-      staffId,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes('Forbidden')) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: error.errors },
-        { status: 400 }
+        { ok: false, error: { code: 'FORBIDDEN', message: 'Admin access required', requestId } },
+        { status: 403 }
+      );
+    }
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return NextResponse.json(
+        { ok: false, error: { code: 'UNAUTHORIZED', message: 'You must be signed in', requestId } },
+        { status: 401 }
       );
     }
 
-    console.error('Unexpected error in approve staff:', error);
+    console.error('[POST /api/admin/staff/approve]', { requestId, error });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { ok: false, error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred', requestId } },
       { status: 500 }
     );
   }

@@ -13,12 +13,18 @@
  */
 
 import { useState } from 'react';
+import { supabase } from '@/app/lib/supabase';
 import {
   isFreeEmailDomain,
   extractEmailDomain,
   ProfessionalReferenceInput,
   PersonalReferenceInput,
 } from '@/app/lib/validations/references';
+
+async function getToken(): Promise<string | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ?? null;
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -196,9 +202,19 @@ export default function Step6References({ onNext, onBack }: Step6ReferencesProps
 
     setSending(true);
     try {
+      const token = await getToken();
+      if (!token) {
+        setApiError('Session expired — please sign in again.');
+        setSending(false);
+        return;
+      }
+
       const resp = await fetch('/api/staff/onboarding/references/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({
           professional: {
             referee_name:     refs.professional.referee_name,
