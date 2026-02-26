@@ -1,12 +1,17 @@
 /**
  * Seed script for test data
- * Run with: npx tsx scripts/seed-test-data.ts
+ * Run with: npm run seed
  * 
  * This creates:
  * - 3 approved settings (nurseries)
  * - 5 approved staff members
- * - 3 open job postings
+ * - 4 open job postings
  * - Some applications/booking responses
+ * 
+ * TO CLEAN UP TEST DATA:
+ * Option 1: npm run cleanup
+ * Option 2: Run supabase/seed-cleanup.sql in SQL Editor
+ * Option 3: Manually run DELETE queries using the IDs (all start with 00000000-0000-0000-0000-00000000)
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -314,6 +319,9 @@ async function seed() {
   console.log('    - sarah.staff@example.com (Sarah Williams)');
   console.log('    - david.staff@example.com (David Brown)');
   console.log('    - lisa.staff@example.com (Lisa Davis)');
+  console.log('\n🧹 To clean up test data:');
+  console.log('  npm run cleanup');
+  console.log('  OR run supabase/seed-cleanup.sql in SQL Editor');
 }
 
 seed().catch(console.error);

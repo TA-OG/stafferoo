@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "gate": "npm run lint && npm run build && npm run test",
     "worker": "node --env-file=.env.local node_modules/.bin/tsx worker/index.ts",
-    "seed": "npx tsx scripts/seed-test-data.ts"
+    "seed": "npx tsx scripts/seed-test-data.ts",
+    "cleanup": "npx tsx scripts/cleanup-test-data.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.0.10",

@@ -1,5 +1,9 @@
 -- Seed data for testing
 -- Run this in Supabase SQL Editor
+-- 
+-- TO CLEAN UP TEST DATA:
+-- Run the cleanup script: supabase/seed-cleanup.sql
+-- Or manually delete using the IDs prefixed with 00000000-0000-0000-0000-00000000
 
 -- Test Settings (Nurseries)
 INSERT INTO setting_profiles (id, email, setting_name, ofsted_urn, ofsted_rating, address_line_1, city, postcode, phone, verification_status, verified_at) VALUES
