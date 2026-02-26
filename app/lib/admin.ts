@@ -23,8 +23,10 @@ export async function isCurrentUserAdmin(): Promise<boolean> {
     return true;
   }
 
-  const role = user.user_metadata?.role;
-  return role === 'admin';
+  // Check both app_metadata (secure) and user_metadata (legacy/backwards compat)
+  const appRole = user.app_metadata?.role;
+  const userRole = user.user_metadata?.role;
+  return appRole === 'admin' || userRole === 'admin';
 }
 
 export async function requireAuth() {
