@@ -4,8 +4,6 @@ import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { supabase } from '@/app/lib/supabase';
-
 function ResendConfirmationForm() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState(searchParams.get('email') ?? '');
@@ -18,6 +16,9 @@ function ResendConfirmationForm() {
     setLoading(true);
     setError(null);
 
+    // Lazy import supabase to avoid SSR/build-time initialization issues
+    const { supabase } = await import('@/app/lib/supabase');
+    
     const { error: resendError } = await supabase.auth.resend({
       type: 'signup',
       email,

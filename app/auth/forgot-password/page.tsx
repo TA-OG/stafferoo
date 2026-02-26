@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabase } from '@/app/lib/supabase';
 import { logger } from '@/app/lib/logger';
 
 export default function ForgotPasswordPage() {
@@ -22,6 +21,9 @@ export default function ForgotPasswordPage() {
     logger.info('Password reset requested', { requestId, email });
 
     try {
+      // Lazy import supabase to avoid SSR/build-time initialization issues
+      const { supabase } = await import('@/app/lib/supabase');
+      
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,

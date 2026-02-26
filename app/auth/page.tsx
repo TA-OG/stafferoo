@@ -2,7 +2,6 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { supabase } from '@/app/lib/supabase';
 import { logger } from '@/app/lib/logger';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -42,6 +41,9 @@ function AuthForm() {
     logger.info('Sign in attempt', { requestId, email });
 
     try {
+      // Lazy import supabase to avoid SSR/build-time initialization issues
+      const { supabase } = await import('@/app/lib/supabase');
+      
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -144,6 +146,9 @@ function AuthForm() {
       
       logger.debug('Sign up config', { requestId, emailRedirectTo, hasRole: !!role });
 
+      // Lazy import supabase to avoid SSR/build-time initialization issues
+      const { supabase } = await import('@/app/lib/supabase');
+      
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,

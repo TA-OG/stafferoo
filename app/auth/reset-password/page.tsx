@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabase } from '@/app/lib/supabase';
 import { logger } from '@/app/lib/logger';
 
 export default function ResetPasswordPage() {
@@ -19,9 +18,15 @@ export default function ResetPasswordPage() {
   // Verify we have a session (user clicked the reset link)
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setError('Invalid or expired reset link. Please request a new one.');
+      try {
+        // Lazy import supabase to avoid SSR/build-time initialization issues
+        const { supabase } = await import('@/app/lib/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setError('Invalid or expired reset link. Please request a new one.');
+        }
+      } catch (err) {
+        setError('Failed to initialize authentication. Please try again.');
       }
       setSessionChecked(true);
     };
@@ -62,6 +67,9 @@ export default function ResetPasswordPage() {
     try {
       logger.info('Password reset attempt', { requestId });
 
+      // Lazy import supabase to avoid SSR/build-time initialization issues
+      const { supabase } = await import('@/app/lib/supabase');
+      
       const { error: updateError } = await supabase.auth.updateUser({
         password,
       });
