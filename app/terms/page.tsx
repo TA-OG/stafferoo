@@ -161,7 +161,51 @@ export default function TermsPage() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">14. Contact</h2>
+            <h2 className="text-xl font-semibold text-gray-900">14. In-Platform Communication</h2>
+            <p className="text-gray-700 leading-relaxed">
+              Stafferoo provides an in-platform messaging facility (&ldquo;the Chat&rdquo;) to allow
+              Businesses and Staff to exchange job-related information. The following rules apply to
+              all use of the Chat:
+            </p>
+            <ul className="list-disc pl-6 text-gray-700 leading-relaxed space-y-2">
+              <li>
+                <strong>Permitted use only.</strong> The Chat is provided solely to allow Businesses
+                and Staff to clarify job-specific details for a shift that has been advertised on the
+                Platform. It must not be used for any other purpose.
+              </li>
+              <li>
+                <strong>No contact details.</strong> Sharing personal contact information —
+                including phone numbers, personal or business email addresses, social media handles,
+                messaging app usernames, or any other means of off-platform communication — is
+                strictly prohibited.
+              </li>
+              <li>
+                <strong>No off-platform arrangements.</strong> Using the Chat (or any other part of
+                the Platform) to arrange bookings, payments, or working arrangements outside of
+                Stafferoo is a serious breach of these Terms and may expose you to legal liability.
+              </li>
+              <li>
+                <strong>Chat availability.</strong> A Chat thread becomes available once a Staff
+                member has applied for a posted shift. The thread closes six (6) hours after the
+                scheduled end time of the shift. Message history is preserved for thirty (30) days
+                after the thread closes.
+              </li>
+              <li>
+                <strong>Monitoring.</strong> Stafferoo reserves the right to review Chat messages
+                for the purpose of investigating reported violations, safeguarding concerns, or
+                platform security.
+              </li>
+              <li>
+                <strong>Consequences of violation.</strong> Any user found to have shared contact
+                details, arranged off-platform work, or otherwise misused the Chat will be subject
+                to immediate suspension and may be permanently removed from the Platform without
+                refund. Stafferoo may report serious violations to relevant regulatory bodies.
+              </li>
+            </ul>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold text-gray-900">15. Contact</h2>
             <p className="text-gray-700 leading-relaxed">
               If you have any questions about these Terms, please contact us at{" "}
               <a

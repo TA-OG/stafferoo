@@ -176,6 +176,15 @@ export async function POST(req: NextRequest) {
       return jsonError(400, "BAD_REQUEST", `Unsupported step: ${step}`);
   }
 
+  // When step 5 completes without error, record T&C acceptance.
+  // The client enforces the checkbox; we record the server-side timestamp.
+  if (step === 5 && !result.validationError && !result.dbError) {
+    await supabase
+      .from("staff_profiles")
+      .update({ terms_accepted_at: new Date().toISOString() })
+      .eq("id", user.id);
+  }
+
   if (result.validationError) {
     const flat = result.validationError.flatten();
     console.error("[save-step] validation failed", { requestId, step, userId: user.id, fields: flat.fieldErrors });

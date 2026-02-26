@@ -23,6 +23,11 @@ export const settingRegistrationSchema = z.object({
   team_size: z.number().int().positive().optional(),
   operation_hours_start: z.string().optional(),
   operation_hours_end: z.string().optional(),
+  // Must be true — enforced client-side and server-side.
+  // Stripped before DB insert; terms_accepted_at timestamp stored instead.
+  terms_accepted: z.literal(true, {
+    errorMap: () => ({ message: 'You must read and accept the Terms and Conditions to register' }),
+  }),
 });
 
 export type SettingRegistrationInput = z.infer<typeof settingRegistrationSchema>;

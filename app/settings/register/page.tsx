@@ -388,6 +388,38 @@ export default function SettingsRegister() {
               </div>
             </div>
 
+            {/* Terms and Conditions acceptance */}
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="terms_accepted"
+                  name="terms_accepted"
+                  checked={!!formData.terms_accepted}
+                  onChange={handleChange}
+                  className="mt-0.5 h-4 w-4 shrink-0 text-[#bf5d9f] focus:ring-[#bf5d9f] border-gray-300 rounded"
+                  required
+                />
+                <span className="text-sm text-gray-700">
+                  I have read and agree to the Stafferoo{' '}
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-[#bf5d9f] underline hover:text-[#a84d87]"
+                  >
+                    Terms and Conditions
+                  </a>
+                  , including the in-platform communication rules. I understand that sharing contact
+                  details or arranging off-platform work may result in permanent removal from the
+                  platform. <span className="text-red-500">*</span>
+                </span>
+              </label>
+              {errors.terms_accepted && (
+                <p className="mt-2 text-sm text-red-600">{errors.terms_accepted}</p>
+              )}
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"

@@ -64,13 +64,18 @@ export const POST = createApiRoute(async (request, requestId) => {
       }
     }
 
+    // Strip terms_accepted (boolean guard) before insert; store timestamp instead.
+    const { terms_accepted: _tc, ...profileData } = validated;
+    void _tc; // acknowledged — used only for validation
+
     const { data: setting, error: insertError } = await supabase
       .from('setting_profiles')
       .insert({
         id: user.id,
-        ...validated,
+        ...profileData,
         postcode: postcodeKey,
         verification_status: verificationStatus,
+        terms_accepted_at: new Date().toISOString(),
       })
       .select()
       .single();
