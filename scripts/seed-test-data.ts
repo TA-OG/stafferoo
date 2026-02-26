@@ -143,6 +143,9 @@ async function seed() {
   ];
 
   // Create job requests
+  // Note: Staff see £15.50/hour flat rate. Settings pay £23/hour (£7.50 platform margin)
+  const STAFF_RATE = 15.50;
+  
   const jobs = [
     {
       id: '00000000-0000-0000-0000-000000000100',
@@ -153,8 +156,8 @@ async function seed() {
       start_time: '08:00',
       end_time: '17:00',
       role_required: 'room_leader',
-      hourly_rate: 22.50,
-      estimated_total: 189.00,
+      hourly_rate: STAFF_RATE,
+      estimated_total: Math.round(9 * STAFF_RATE * 100) / 100, // 9 hours
       postcode: 'SW1A 1AA',
       status: 'open',
     },
@@ -167,8 +170,8 @@ async function seed() {
       start_time: '12:00',
       end_time: '18:00',
       role_required: 'nursery_practitioner',
-      hourly_rate: 18.00,
-      estimated_total: 108.00,
+      hourly_rate: STAFF_RATE,
+      estimated_total: Math.round(6 * STAFF_RATE * 100) / 100, // 6 hours
       postcode: 'SW1A 1AA',
       status: 'open',
     },
@@ -181,8 +184,8 @@ async function seed() {
       start_time: '08:00',
       end_time: '18:00',
       role_required: 'early_years_teacher',
-      hourly_rate: 25.00,
-      estimated_total: 250.00,
+      hourly_rate: STAFF_RATE,
+      estimated_total: Math.round(10 * STAFF_RATE * 100) / 100, // 10 hours
       postcode: 'M1 1AA',
       status: 'open',
     },
@@ -195,8 +198,8 @@ async function seed() {
       start_time: '07:30',
       end_time: '13:00',
       role_required: 'nursery_assistant',
-      hourly_rate: 15.50,
-      estimated_total: 82.13,
+      hourly_rate: STAFF_RATE,
+      estimated_total: Math.round(5.5 * STAFF_RATE * 100) / 100, // 5.5 hours
       postcode: 'B1 1AA',
       status: 'open',
     },

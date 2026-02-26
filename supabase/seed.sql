@@ -22,11 +22,16 @@ INSERT INTO staff_profiles (id, email, full_name, phone, postcode, travel_radius
 ON CONFLICT (id) DO NOTHING;
 
 -- Test Jobs
+-- Note: Staff see £15.50/hour flat rate. Settings pay £23/hour (platform margin is £7.50/hour)
 INSERT INTO job_requests (id, setting_id, title, description, job_date, start_time, end_time, role_required, hourly_rate, estimated_total, postcode, status) VALUES
-  ('00000000-0000-0000-0000-000000000100', '00000000-0000-0000-0000-000000000001', 'Room Leader Needed - Baby Room', 'We need an experienced Room Leader for our baby room (0-2 years). Must have Level 3 qualification and experience with EYFS. Lovely setting with supportive team.', (now() + interval '3 days')::date, '08:00', '17:00', 'room_leader', 22.50, 189.00, 'SW1A 1AA', 'open'),
-  ('00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000001', 'Nursery Practitioner - Afternoon Shift', 'Looking for a Nursery Practitioner to cover afternoon shift. Duties include supervising children, supporting activities, and maintaining safeguarding standards.', (now() + interval '5 days')::date, '12:00', '18:00', 'nursery_practitioner', 18.00, 108.00, 'SW1A 1AA', 'open'),
-  ('00000000-0000-0000-0000-000000000102', '00000000-0000-0000-0000-000000000002', 'Early Years Teacher - Full Day', 'Seeking a qualified Early Years Teacher for a full day. Must have QTS or EYTS. Experience with phonics and early maths preferred.', (now() + interval '2 days')::date, '08:00', '18:00', 'early_years_teacher', 25.00, 250.00, 'M1 1AA', 'open'),
-  ('00000000-0000-0000-0000-000000000103', '00000000-0000-0000-0000-000000000003', 'Nursery Assistant - Morning Cover', 'Morning cover needed in our toddler room. Support with breakfast, free play, and outdoor activities. Friendly team environment.', (now() + interval '4 days')::date, '07:30', '13:00', 'nursery_assistant', 15.50, 82.13, 'B1 1AA', 'open')
+  -- 9 hours × £15.50 = £139.50
+  ('00000000-0000-0000-0000-000000000100', '00000000-0000-0000-0000-000000000001', 'Room Leader Needed - Baby Room', 'We need an experienced Room Leader for our baby room (0-2 years). Must have Level 3 qualification and experience with EYFS. Lovely setting with supportive team.', (now() + interval '3 days')::date, '08:00', '17:00', 'room_leader', 15.50, 139.50, 'SW1A 1AA', 'open'),
+  -- 6 hours × £15.50 = £93.00
+  ('00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000001', 'Nursery Practitioner - Afternoon Shift', 'Looking for a Nursery Practitioner to cover afternoon shift. Duties include supervising children, supporting activities, and maintaining safeguarding standards.', (now() + interval '5 days')::date, '12:00', '18:00', 'nursery_practitioner', 15.50, 93.00, 'SW1A 1AA', 'open'),
+  -- 10 hours × £15.50 = £155.00
+  ('00000000-0000-0000-0000-000000000102', '00000000-0000-0000-0000-000000000002', 'Early Years Teacher - Full Day', 'Seeking a qualified Early Years Teacher for a full day. Must have QTS or EYTS. Experience with phonics and early maths preferred.', (now() + interval '2 days')::date, '08:00', '18:00', 'early_years_teacher', 15.50, 155.00, 'M1 1AA', 'open'),
+  -- 5.5 hours × £15.50 = £85.25
+  ('00000000-0000-0000-0000-000000000103', '00000000-0000-0000-0000-000000000003', 'Nursery Assistant - Morning Cover', 'Morning cover needed in our toddler room. Support with breakfast, free play, and outdoor activities. Friendly team environment.', (now() + interval '4 days')::date, '07:30', '13:00', 'nursery_assistant', 15.50, 85.25, 'B1 1AA', 'open')
 ON CONFLICT (id) DO NOTHING;
 
 -- Test Applications (Booking Responses)
