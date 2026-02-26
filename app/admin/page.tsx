@@ -3,6 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/app/lib/supabase-server";
 import { isCurrentUserAdmin } from "@/app/lib/admin";
 import Breadcrumbs from "@/app/components/Breadcrumbs";
+import LogoutButton from "@/app/components/LogoutButton";
+import AdminMFASetup from "@/app/components/AdminMFASetup";
 
 export default async function AdminDashboard() {
   const isAdmin = await isCurrentUserAdmin();
@@ -56,16 +58,19 @@ export default async function AdminDashboard() {
       <div className="max-w-6xl mx-auto">
         <Breadcrumbs items={[{ label: "Admin" }]} />
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Admin Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Platform overview and verification queues
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Admin Dashboard
+            </h1>
+            <p className="text-gray-600">
+              Platform overview and verification queues
+            </p>
+          </div>
+          <LogoutButton variant="admin" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {cards.map((card) => (
             <Link
               key={card.href}
@@ -79,6 +84,12 @@ export default async function AdminDashboard() {
               )}
             </Link>
           ))}
+        </div>
+
+        {/* MFA Section */}
+        <div className="max-w-2xl">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Security Settings</h2>
+          <AdminMFASetup />
         </div>
       </div>
     </div>
