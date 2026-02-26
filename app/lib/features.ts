@@ -21,6 +21,8 @@ function flag(envVar: string, defaultValue = false): boolean {
 export const features = {
   /** Staff references capture + referee link workflow. */
   references: flag('FEATURE_REFERENCES', false),
+  /** Block messages that contain contact details (phone, email, social handles). */
+  chatContactFilter: flag('FEATURE_CHAT_CONTACT_FILTER', false),
 } as const;
 
 export type FeatureKey = keyof typeof features;
