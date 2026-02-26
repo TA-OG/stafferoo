@@ -305,7 +305,6 @@ function AuthForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={12}
-                  pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$"
                   className="w-full px-4 py-2 rounded-lg"
                   placeholder="••••••••••••"
                   aria-describedby="password-requirements"
