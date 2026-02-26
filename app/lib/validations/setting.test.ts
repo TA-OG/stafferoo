@@ -17,6 +17,7 @@ describe('settingRegistrationSchema', () => {
     city: 'London',
     postcode: 'SW1A 1AA',
     has_parking: false,
+    terms_accepted: true as const,
   };
 
   it('accepts a fully populated valid registration', () => {
@@ -194,6 +195,7 @@ describe('settingRegistrationSchema', () => {
       address_line_1: validBase.address_line_1,
       city: validBase.city,
       postcode: validBase.postcode,
+      terms_accepted: true as const,
     };
     const result = settingRegistrationSchema.safeParse(withoutParking);
     expect(result.success).toBe(true);

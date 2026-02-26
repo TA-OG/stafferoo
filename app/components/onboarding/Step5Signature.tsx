@@ -20,6 +20,7 @@ export default function Step5Signature({
   const [signature, setSignature] = useState(initialData?.digital_signature_svg ?? '');
   const [agreed, setAgreed] = useState(false);
   const [medicalConsent, setMedicalConsent] = useState(false);
+  const [platformTcAgreed, setPlatformTcAgreed] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,6 +39,11 @@ export default function Step5Signature({
 
     if (!medicalConsent) {
       setFormError('You must confirm the medical declaration to submit your application.');
+      return;
+    }
+
+    if (!platformTcAgreed) {
+      setFormError('You must agree to the Stafferoo Terms and Conditions to submit your application.');
       return;
     }
 
@@ -151,6 +157,34 @@ export default function Step5Signature({
           </label>
         </div>
 
+        {/* Platform Terms and Conditions */}
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={platformTcAgreed}
+              onChange={(e) => setPlatformTcAgreed(e.target.checked)}
+              className="mt-0.5 shrink-0"
+              required
+            />
+            <span className="text-sm text-gray-700">
+              I have read and agree to the Stafferoo{' '}
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-[#bf5d9f] underline hover:text-[#a84d87]"
+              >
+                Terms and Conditions
+              </a>
+              , including the in-platform communication rules. I understand that the Stafferoo
+              chat is for job-related queries only, that sharing personal contact details is
+              strictly prohibited, and that violations may result in permanent removal from
+              the platform. *
+            </span>
+          </label>
+        </div>
+
         {/* What happens next */}
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <h3 className="font-semibold text-gray-900 mb-2">What happens next?</h3>
@@ -175,7 +209,7 @@ export default function Step5Signature({
 
         <button
           type="submit"
-          disabled={isSubmitting || !signature || !agreed || !medicalConsent}
+          disabled={isSubmitting || !signature || !agreed || !medicalConsent || !platformTcAgreed}
           className="w-full sm:w-auto bg-[#c653a0] text-white py-3 px-8 rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
