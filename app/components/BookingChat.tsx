@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from '@/app/lib/supabase';
 
 interface Message {
@@ -26,24 +26,11 @@ export default function BookingChat({ bookingId }: BookingChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    loadMessages();
-
-    // Poll for new messages every 10 seconds
-    const interval = setInterval(loadMessages, 10000);
-    return () => clearInterval(interval);
-  }, [bookingId]);
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) return;
@@ -61,7 +48,20 @@ export default function BookingChat({ bookingId }: BookingChatProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [bookingId]);
+
+  useEffect(() => {
+    loadMessages();
+
+    // Poll for new messages every 10 seconds
+    const interval = setInterval(loadMessages, 10000);
+    return () => clearInterval(interval);
+  }, [bookingId, loadMessages]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
