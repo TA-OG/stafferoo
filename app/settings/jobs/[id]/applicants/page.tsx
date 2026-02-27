@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
+import BookingChat from '@/app/components/BookingChat';
 
 interface Applicant {
   responseId: string;
@@ -50,11 +51,13 @@ export default function JobApplicantsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selecting, setSelecting] = useState<string | null>(null);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
 
   useEffect(() => {
     if (jobId) {
       loadApplicants();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId]);
 
   const loadApplicants = async () => {
@@ -117,7 +120,6 @@ export default function JobApplicantsPage() {
         return;
       }
 
-      // Reload applicants to show updated status
       await loadApplicants();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -164,9 +166,8 @@ export default function JobApplicantsPage() {
     }
   };
 
-  // Check if we already have primary and secondary selected
-  const hasPrimary = applicants.some(a => a.isPrimary);
-  const hasSecondary = applicants.some(a => a.isSecondary);
+  const hasPrimary = applicants.some((a) => a.isPrimary);
+  const hasSecondary = applicants.some((a) => a.isSecondary);
 
   return (
     <div className="min-h-screen bg-[#f8f0f5] py-8 px-4">
@@ -242,7 +243,7 @@ export default function JobApplicantsPage() {
                     Selection Status
                   </p>
                   <p className="text-xs text-blue-700 mt-1">
-                    Primary: {hasPrimary ? '✓ Selected' : 'Not selected'} • 
+                    Primary: {hasPrimary ? '✓ Selected' : 'Not selected'} •{' '}
                     Secondary (backup): {hasSecondary ? '✓ Selected' : 'Not selected'}
                   </p>
                 </div>
@@ -256,144 +257,154 @@ export default function JobApplicantsPage() {
             </div>
 
             {applicants.map((applicant) => (
-              <div
-                key={applicant.responseId}
-                className={`bg-white rounded-xl border ${
-                  applicant.isPrimary 
-                    ? 'border-green-300 ring-2 ring-green-100' 
-                    : applicant.isSecondary 
-                      ? 'border-blue-300 ring-2 ring-blue-100' 
-                      : 'border-[rgba(180,156,220,0.42)]'
-                } p-5`}
-              >
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {applicant.staff.fullName}
-                      </h3>
-                      {applicant.isPrimary && (
-                        <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">
-                          Primary
+              <div key={applicant.responseId}>
+                <div
+                  className={`bg-white rounded-xl border ${
+                    applicant.isPrimary
+                      ? 'border-green-300 ring-2 ring-green-100'
+                      : applicant.isSecondary
+                        ? 'border-blue-300 ring-2 ring-blue-100'
+                        : 'border-[rgba(180,156,220,0.42)]'
+                  } p-5`}
+                >
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {applicant.staff.fullName}
+                        </h3>
+                        {applicant.isPrimary && (
+                          <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">
+                            Primary
+                          </span>
+                        )}
+                        {applicant.isSecondary && (
+                          <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+                            Secondary
+                          </span>
+                        )}
+                        {applicant.status === 'accepted' && !applicant.isPrimary && !applicant.isSecondary && (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">
+                            Declined
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Applied {formatDate(applicant.createdAt)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      {applicant.staff.allDocsValid ? (
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">
+                          ✓ Docs Verified
                         </span>
-                      )}
-                      {applicant.isSecondary && (
-                        <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded">
-                          Secondary
-                        </span>
-                      )}
-                      {applicant.status === 'accepted' && !applicant.isPrimary && !applicant.isSecondary && (
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">
-                          Declined
+                      ) : (
+                        <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded">
+                          ⚠ Docs Pending
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Applied {formatDate(applicant.createdAt)}
-                    </p>
                   </div>
-                  <div className="text-right">
-                    {applicant.staff.allDocsValid ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">
-                        ✓ Docs Verified
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded">
-                        ⚠ Docs Pending
-                      </span>
+
+                  {/* Staff Details */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Experience:</span>
+                      <p className="font-medium">{applicant.staff.yearsExperience || 0} years</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Qualification:</span>
+                      <p className="font-medium">{getQualificationLabel(applicant.staff.qualificationLevel)}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Location:</span>
+                      <p className="font-medium">{applicant.staff.postcode || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Transport:</span>
+                      <p className="font-medium">{getTransportLabel(applicant.staff.transportMode)}</p>
+                    </div>
+                  </div>
+
+                  {/* Documents */}
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-500 mb-2">Documents</p>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(applicant.staff.documents).map(([docType, status]) => (
+                        <span
+                          key={docType}
+                          className={`px-2 py-1 rounded text-xs font-medium ${getDocumentStatusColor(status)}`}
+                        >
+                          {docType.replace(/_/g, ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Applicant Message */}
+                  {applicant.message && (
+                    <div className="bg-purple-50 border border-purple-100 rounded-lg p-3 mb-4">
+                      <p className="text-xs text-gray-500 mb-1">Message from applicant:</p>
+                      <p className="text-sm text-gray-700 italic">&ldquo;{applicant.message}&rdquo;</p>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap gap-3">
+                    {job?.status === 'open' && (
+                      <>
+                        {!applicant.isPrimary && !hasPrimary && applicant.status !== 'declined' && (
+                          <button
+                            onClick={() => handleSelectStaff(applicant.staff.id, 'primary')}
+                            disabled={selecting === applicant.staff.id + 'primary'}
+                            className="flex-1 bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                          >
+                            {selecting === applicant.staff.id + 'primary'
+                              ? 'Selecting...'
+                              : 'Select as Primary'}
+                          </button>
+                        )}
+                        {!applicant.isSecondary && !hasSecondary && !applicant.isPrimary && applicant.status !== 'declined' && (
+                          <button
+                            onClick={() => handleSelectStaff(applicant.staff.id, 'secondary')}
+                            disabled={selecting === applicant.staff.id + 'secondary'}
+                            className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                          >
+                            {selecting === applicant.staff.id + 'secondary'
+                              ? 'Selecting...'
+                              : 'Select as Secondary (Backup)'}
+                          </button>
+                        )}
+                      </>
                     )}
-                  </div>
-                </div>
-
-                {/* Staff Details */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
-                  <div>
-                    <span className="text-gray-500">Experience:</span>
-                    <p className="font-medium">{applicant.staff.yearsExperience || 0} years</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Qualification:</span>
-                    <p className="font-medium">{getQualificationLabel(applicant.staff.qualificationLevel)}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Location:</span>
-                    <p className="font-medium">{applicant.staff.postcode || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Transport:</span>
-                    <p className="font-medium">{getTransportLabel(applicant.staff.transportMode)}</p>
-                  </div>
-                </div>
-
-                {/* Documents */}
-                <div className="mb-4">
-                  <p className="text-xs text-gray-500 mb-2">Documents</p>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(applicant.staff.documents).map(([docType, status]) => (
-                      <span
-                        key={docType}
-                        className={`px-2 py-1 rounded text-xs font-medium ${getDocumentStatusColor(status)}`}
-                      >
-                        {docType.replace(/_/g, ' ')}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Contact */}
-                <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                  <div className="flex flex-wrap gap-4 text-sm">
-                    <a 
-                      href={`mailto:${applicant.staff.email}`}
-                      className="text-[#bf5d9f] hover:underline"
-                    >
-                      {applicant.staff.email}
-                    </a>
-                    {applicant.staff.phone && (
-                      <a 
-                        href={`tel:${applicant.staff.phone}`}
-                        className="text-[#bf5d9f] hover:underline"
-                      >
-                        {applicant.staff.phone}
-                      </a>
-                    )}
-                  </div>
-                </div>
-
-                {/* Applicant Message */}
-                {applicant.message && (
-                  <div className="bg-purple-50 border border-purple-100 rounded-lg p-3 mb-4">
-                    <p className="text-xs text-gray-500 mb-1">Message from applicant:</p>
-                    <p className="text-sm text-gray-700 italic">&ldquo;{applicant.message}&rdquo;</p>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                {job?.status === 'open' && (
-                  <div className="flex gap-3">
-                    {!applicant.isPrimary && !hasPrimary && applicant.status !== 'declined' && (
+                    {/* Chat button — always visible for active applicants */}
+                    {applicant.status !== 'withdrawn' && (
                       <button
-                        onClick={() => handleSelectStaff(applicant.staff.id, 'primary')}
-                        disabled={selecting === applicant.staff.id + 'primary'}
-                        className="flex-1 bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                        onClick={() =>
+                          setActiveChatId((prev) =>
+                            prev === applicant.responseId ? null : applicant.responseId,
+                          )
+                        }
+                        className={`flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
+                          activeChatId === applicant.responseId
+                            ? 'bg-[#bf5d9f] text-white'
+                            : 'bg-purple-50 text-[#bf5d9f] hover:bg-purple-100'
+                        }`}
                       >
-                        {selecting === applicant.staff.id + 'primary' 
-                          ? 'Selecting...' 
-                          : 'Select as Primary'}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        {activeChatId === applicant.responseId ? 'Close Chat' : 'Chat'}
                       </button>
                     )}
-                    {!applicant.isSecondary && !hasSecondary && !applicant.isPrimary && applicant.status !== 'declined' && (
-                      <button
-                        onClick={() => handleSelectStaff(applicant.staff.id, 'secondary')}
-                        disabled={selecting === applicant.staff.id + 'secondary'}
-                        className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                      >
-                        {selecting === applicant.staff.id + 'secondary' 
-                          ? 'Selecting...' 
-                          : 'Select as Secondary (Backup)'}
-                      </button>
-                    )}
+                  </div>
+                </div>
+
+                {/* Inline chat panel */}
+                {activeChatId === applicant.responseId && (
+                  <div className="mt-2">
+                    <BookingChat applicationId={applicant.responseId} />
                   </div>
                 )}
               </div>

@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
+import BookingChat from '@/app/components/BookingChat';
 
 interface Application {
   id: string;
@@ -40,17 +41,22 @@ interface Application {
   } | null;
 }
 
+/** Statuses for which the chat channel is available. */
+const CHAT_ELIGIBLE_STATUSES = new Set([
+  'pending',
+  'accepted',
+  'selected_primary',
+  'selected_secondary',
+]);
+
 export default function StaffApplicationsPage() {
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadApplications();
-  }, []);
-
-  const loadApplications = async () => {
+  const loadApplications = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -80,7 +86,11 @@ export default function StaffApplicationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    loadApplications();
+  }, [loadApplications]);
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return 'N/A';
@@ -185,133 +195,150 @@ export default function StaffApplicationsPage() {
         ) : (
           <div className="space-y-4">
             {applications.map((app) => (
-              <div
-                key={app.id}
-                className={`bg-white rounded-xl border p-5 ${
-                  app.booking?.isPrimary 
-                    ? 'border-green-300 ring-2 ring-green-100' 
-                    : app.booking?.isSecondary 
-                      ? 'border-blue-300 ring-2 ring-blue-100' 
-                      : 'border-[rgba(180,156,220,0.42)]'
-                }`}
-              >
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {app.job.title}
-                      </h3>
-                      {app.setting.ofstedRating && (
-                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
-                          Ofsted {app.setting.ofstedRating}
+              <div key={app.id}>
+                <div
+                  className={`bg-white rounded-xl border p-5 ${
+                    app.booking?.isPrimary
+                      ? 'border-green-300 ring-2 ring-green-100'
+                      : app.booking?.isSecondary
+                        ? 'border-blue-300 ring-2 ring-blue-100'
+                        : 'border-[rgba(180,156,220,0.42)]'
+                  }`}
+                >
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {app.job.title}
+                        </h3>
+                        {app.setting.ofstedRating && (
+                          <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
+                            Ofsted {app.setting.ofstedRating}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">{app.setting.name}</p>
+                    </div>
+                    <div className="text-right">
+                      {getStatusBadge(app.status)}
+                      <p className="text-xs text-gray-400 mt-1">
+                        Applied {formatDate(app.appliedAt)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Job Details */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Date:</span>
+                      <p className="font-medium">{formatDate(app.job.jobDate)}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Time:</span>
+                      <p className="font-medium">{formatTime(app.job.startTime)} - {formatTime(app.job.endTime)}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Role:</span>
+                      <p className="font-medium">{app.job.roleLabel}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Pay:</span>
+                      <p className="font-medium text-[#bf5d9f]">£{app.job.estimatedTotal?.toFixed(2)}</p>
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span className="text-gray-600">
+                        {app.setting.address || app.setting.postcode || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Selection Info */}
+                  {app.booking?.isPrimary && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-semibold text-green-900">
+                            You are the primary staff for this shift!
+                          </p>
+                          <p className="text-xs text-green-700 mt-0.5">
+                            Please arrive on time. The nursery is expecting you.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {app.booking?.isSecondary && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-semibold text-blue-900">
+                            You are the backup staff for this shift.
+                          </p>
+                          <p className="text-xs text-blue-700 mt-0.5">
+                            You will be contacted if the primary staff cannot attend.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Footer */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <Link
+                      href={`/staff/jobs/${app.job.id}`}
+                      className="text-sm text-[#bf5d9f] hover:underline"
+                    >
+                      View Job Details →
+                    </Link>
+                    <div className="flex items-center gap-3">
+                      {app.status === 'pending' && (
+                        <span className="text-xs text-amber-600">
+                          Waiting for nursery response...
                         </span>
                       )}
+                      {CHAT_ELIGIBLE_STATUSES.has(app.status) && (
+                        <button
+                          onClick={() =>
+                            setActiveChatId((prev) => (prev === app.id ? null : app.id))
+                          }
+                          className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                            activeChatId === app.id
+                              ? 'bg-[#bf5d9f] text-white'
+                              : 'bg-purple-50 text-[#bf5d9f] hover:bg-purple-100'
+                          }`}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          {activeChatId === app.id ? 'Close Chat' : 'Chat'}
+                        </button>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-600">{app.setting.name}</p>
-                  </div>
-                  <div className="text-right">
-                    {getStatusBadge(app.status)}
-                    <p className="text-xs text-gray-400 mt-1">
-                      Applied {formatDate(app.appliedAt)}
-                    </p>
                   </div>
                 </div>
 
-                {/* Job Details */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
-                  <div>
-                    <span className="text-gray-500">Date:</span>
-                    <p className="font-medium">{formatDate(app.job.jobDate)}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Time:</span>
-                    <p className="font-medium">{formatTime(app.job.startTime)} - {formatTime(app.job.endTime)}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Role:</span>
-                    <p className="font-medium">{app.job.roleLabel}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Pay:</span>
-                    <p className="font-medium text-[#bf5d9f]">£{app.job.estimatedTotal?.toFixed(2)}</p>
-                  </div>
-                </div>
-
-                {/* Location */}
-                <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="text-gray-600">
-                      {app.setting.address || app.setting.postcode || 'N/A'}
-                    </span>
-                  </div>
-                  {app.setting.phone && (
-                    <div className="flex items-center gap-2 text-sm mt-1">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                      <a href={`tel:${app.setting.phone}`} className="text-[#bf5d9f] hover:underline">
-                        {app.setting.phone}
-                      </a>
-                    </div>
-                  )}
-                </div>
-
-                {/* Selection Info */}
-                {app.booking?.isPrimary && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div>
-                        <p className="text-sm font-semibold text-green-900">
-                          You are the primary staff for this shift!
-                        </p>
-                        <p className="text-xs text-green-700 mt-0.5">
-                          Please arrive on time. The nursery is expecting you.
-                        </p>
-                      </div>
-                    </div>
+                {/* Inline chat panel */}
+                {activeChatId === app.id && (
+                  <div className="mt-2">
+                    <BookingChat applicationId={app.id} />
                   </div>
                 )}
-
-                {app.booking?.isSecondary && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div>
-                        <p className="text-sm font-semibold text-blue-900">
-                          You are the backup staff for this shift.
-                        </p>
-                        <p className="text-xs text-blue-700 mt-0.5">
-                          You will be contacted if the primary staff cannot attend.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Footer */}
-                <div className="flex justify-between items-center">
-                  <Link
-                    href={`/staff/jobs/${app.job.id}`}
-                    className="text-sm text-[#bf5d9f] hover:underline"
-                  >
-                    View Job Details →
-                  </Link>
-                  {app.status === 'pending' && (
-                    <span className="text-xs text-amber-600">
-                      Waiting for nursery response...
-                    </span>
-                  )}
-                </div>
               </div>
             ))}
           </div>
