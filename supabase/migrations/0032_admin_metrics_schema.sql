@@ -2,6 +2,22 @@
 -- Description: Tables for admin dashboard metrics, cost tracking, fraud detection, and alerts
 
 -- ============================================================================
+-- 0. ENSURE is_app_admin() EXISTS (idempotent, safe to re-run)
+-- ============================================================================
+create or replace function is_app_admin()
+returns boolean
+language plpgsql
+security definer
+as $$
+begin
+  return coalesce(
+    current_setting('request.jwt.claims', true)::jsonb -> 'app_metadata' ->> 'role',
+    current_setting('request.jwt.claims', true)::jsonb -> 'user_metadata' ->> 'role'
+  ) = 'admin';
+end;
+$$;
+
+-- ============================================================================
 -- 1. COST TRACKING - Per-entity cost accumulation
 -- ============================================================================
 create table if not exists cost_tracking (

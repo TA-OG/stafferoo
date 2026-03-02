@@ -2,6 +2,22 @@
 -- Description: Manual verification fallback system when email fails
 
 -- ============================================================================
+-- 0. ENSURE is_app_admin() EXISTS (idempotent, safe to re-run)
+-- ============================================================================
+create or replace function is_app_admin()
+returns boolean
+language plpgsql
+security definer
+as $$
+begin
+  return coalesce(
+    current_setting('request.jwt.claims', true)::jsonb -> 'app_metadata' ->> 'role',
+    current_setting('request.jwt.claims', true)::jsonb -> 'user_metadata' ->> 'role'
+  ) = 'admin';
+end;
+$$;
+
+-- ============================================================================
 -- 1. MANUAL VERIFICATION REQUESTS
 -- ============================================================================
 create table if not exists verification_requests (
