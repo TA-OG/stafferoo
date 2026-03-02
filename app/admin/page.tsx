@@ -15,7 +15,7 @@ export default async function AdminDashboard() {
 
   const supabase = await createClient();
 
-  const [staffResult, settingsResult] = await Promise.all([
+  const [staffResult, settingsResult, verificationResult] = await Promise.all([
     supabase
       .from("staff_profiles")
       .select("id", { count: "exact", head: true })
@@ -24,10 +24,15 @@ export default async function AdminDashboard() {
       .from("setting_profiles")
       .select("id", { count: "exact", head: true })
       .eq("verification_status", "pending"),
+    supabase
+      .from("verification_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
   ]);
 
   const pendingStaff = staffResult.count ?? 0;
   const pendingSettings = settingsResult.count ?? 0;
+  const pendingVerifications = verificationResult.count ?? 0;
 
   const cards = [
     {
@@ -45,11 +50,25 @@ export default async function AdminDashboard() {
       colour: "bg-emerald-50 border-emerald-200 text-emerald-700",
     },
     {
+      title: "Email Verifications",
+      href: "/admin/verifications",
+      count: pendingVerifications,
+      description: "Manual verification requests",
+      colour: "bg-purple-50 border-purple-200 text-purple-700",
+    },
+    {
       title: "Postcode Density",
       href: "/admin/postcodes",
       count: null,
       description: "Staff and businesses by postcode",
       colour: "bg-amber-50 border-amber-200 text-amber-700",
+    },
+    {
+      title: "Business Metrics",
+      href: "/admin/metrics",
+      count: null,
+      description: "Conversion, costs, fraud signals, and unit economics",
+      colour: "bg-purple-50 border-purple-200 text-purple-700",
     },
   ];
 
