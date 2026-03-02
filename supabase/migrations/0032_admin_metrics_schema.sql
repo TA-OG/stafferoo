@@ -192,54 +192,38 @@ alter table conversion_events enable row level security;
 alter table admin_alerts enable row level security;
 alter table daily_metrics enable row level security;
 
--- Only admins can access these tables
+-- Only admins can access these tables (uses is_app_admin() from migration 0029)
 drop policy if exists "Admins can view cost_tracking" on cost_tracking;
 create policy "Admins can view cost_tracking"
-  on cost_tracking for select using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  on cost_tracking for select using (is_app_admin());
 
 drop policy if exists "Admins can view support_tickets" on support_tickets;
 create policy "Admins can view support_tickets"
-  on support_tickets for select using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  on support_tickets for select using (is_app_admin());
 
 drop policy if exists "Admins can view api_usage" on api_usage;
 create policy "Admins can view api_usage"
-  on api_usage for select using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  on api_usage for select using (is_app_admin());
 
 drop policy if exists "Admins can view fraud_signals" on fraud_signals;
 create policy "Admins can view fraud_signals"
-  on fraud_signals for all using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  on fraud_signals for all using (is_app_admin());
 
 drop policy if exists "Admins can view postcode_metrics" on postcode_metrics;
 create policy "Admins can view postcode_metrics"
-  on postcode_metrics for select using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  on postcode_metrics for select using (is_app_admin());
 
 drop policy if exists "Admins can view conversion_events" on conversion_events;
 create policy "Admins can view conversion_events"
-  on conversion_events for select using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  on conversion_events for select using (is_app_admin());
 
 drop policy if exists "Admins can manage admin_alerts" on admin_alerts;
 create policy "Admins can manage admin_alerts"
-  on admin_alerts for all using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  on admin_alerts for all using (is_app_admin());
 
 drop policy if exists "Admins can view daily_metrics" on daily_metrics;
 create policy "Admins can view daily_metrics"
-  on daily_metrics for select using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  on daily_metrics for select using (is_app_admin());
 
 -- ============================================================================
 -- FUNCTIONS FOR METRIC CALCULATIONS

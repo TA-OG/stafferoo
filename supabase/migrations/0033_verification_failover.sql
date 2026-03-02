@@ -99,34 +99,26 @@ create policy "Users can create own verification request"
   on verification_requests for insert
   with check (auth.uid() = user_id);
 
--- Admins can view all
+-- Admins can view all (uses is_app_admin() from migration 0029)
 drop policy if exists "Admins can view all verification requests" on verification_requests;
 create policy "Admins can view all verification requests"
   on verification_requests for select
-  using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  using (is_app_admin());
 
 drop policy if exists "Admins can update verification requests" on verification_requests;
 create policy "Admins can update verification requests"
   on verification_requests for update
-  using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  using (is_app_admin());
 
 drop policy if exists "Admins can manage trusted domains" on trusted_email_domains;
 create policy "Admins can manage trusted domains"
   on trusted_email_domains for all
-  using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  using (is_app_admin());
 
 drop policy if exists "Admins can view audit log" on verification_audit_log;
 create policy "Admins can view audit log"
   on verification_audit_log for select
-  using (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-  );
+  using (is_app_admin());
 
 -- ============================================================================
 -- 5. FUNCTIONS
